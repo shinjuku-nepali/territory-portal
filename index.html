@@ -106,7 +106,7 @@
     input:checked + .slider { background-color: var(--primary); }
     input:checked + .slider:before { transform: translateX(20px); }
 
-    /* Login Screen Container */
+    /* Login Screen */
     .login-container {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       height: 100%; padding: 24px; text-align: center; background: var(--bg);
@@ -349,7 +349,10 @@
         remarksPlaceholder: "यहाँ टिप्पणी लेख्नुहोस्...", saveBtn: "सुरक्षित गर्नुहोस्", emptyRemarksText: "+ टिप्पणी थप्नुहोस्...",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `के तपाईं यस इलाकाको लागि चिन्ह "<b>${mark === '' ? 'हटाउन' : mark}</b>" राख्न निश्चित हुनुहुन्छ?<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">महिना: ${monthLabel}</small>`,
         monthNames: ["जनवरी", "फेब्रुअरी", "मार्च", "अप्रिल", "मे", "जुन", "जुलाई", "अगस्ट", "सेप्टेम्बर", "अक्टोबर", "नोभेम्बर", "डिसेम्बर"],
-        formatMonthDisplay: (year, mNum) => `${toDevanagariNumerals(year)} ${I18N.ne.monthNames[Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1]}`
+        formatMonthDisplay: (year, mNum) => {
+          const idx = Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1;
+          return `${toDevanagariNumerals(year)} ${I18N.ne.monthNames[idx]}`;
+        }
       },
       ja: {
         portalTitle: "区域一覧", foldersCrumb: "フォルダ一覧", prefTitle: "設定", langLabel: "言語 / Language",
@@ -363,7 +366,10 @@
         remarksPlaceholder: "ここに備考を入力...", saveBtn: "保存", emptyRemarksText: "+ 備考を追加...",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `以下の区域の訪問記号を「<b>${mark === '' ? '取消' : mark}</b>」に変更しますか？<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">対象月: ${monthLabel}</small>`,
         monthNames: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
-        formatMonthDisplay: (year, mNum) => `${year}年 ${Math.max(1, Math.min(12, parseInt(mNum, 10) || 1))}月`
+        formatMonthDisplay: (year, mNum) => {
+          const idx = Math.max(1, Math.min(12, parseInt(mNum, 10) || 1));
+          return `${year}年 ${idx}月`;
+        }
       },
       en: {
         portalTitle: "Territory", foldersCrumb: "Folders", prefTitle: "Preferences", langLabel: "Language / 言語 / भाषा",
@@ -377,7 +383,10 @@
         remarksPlaceholder: "Add notes/remarks here...", saveBtn: "Save", emptyRemarksText: "+ Add notes / remarks...",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `${mark === '' ? 'Clear the mark' : `Set mark to <b>${mark}</b>`} for:<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">Month: ${monthLabel}</small>`,
         monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-        formatMonthDisplay: (year, mNum) => `${year} ${I18N.en.monthNames[Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1]}`
+        formatMonthDisplay: (year, mNum) => {
+          const idx = Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1;
+          return `${year} ${I18N.en.monthNames[idx]}`;
+        }
       }
     };
 
@@ -405,7 +414,6 @@
       const now = new Date();
       state.activeMonthData = { year: String(now.getFullYear()), monthNum: now.getMonth() + 1 };
       
-      // Check stored token
       const savedToken = sessionStorage.getItem("territory_portal_token");
       if (savedToken) {
         state.idToken = savedToken;
@@ -413,7 +421,6 @@
       }
     };
 
-    // Google Sign-In Callback
     function handleCredentialResponse(response) {
       if (response && response.credential) {
         state.idToken = response.credential;
@@ -435,7 +442,6 @@
       location.reload();
     }
 
-    // Secure API Request Engine
     async function apiRequest(action, payload = {}) {
       if (!state.idToken) throw new Error("Authentication required.");
 
@@ -445,7 +451,6 @@
         payload: payload
       };
 
-      // Simple Request with text/plain prevents CORS preflight failure on Apps Script
       const response = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -571,7 +576,8 @@
     function openRemarksEditor(rowIndex) {
       const territory = state.activeSheetData.territories.find(t => t.rowIndex === rowIndex);
       if (!territory) return;
-      document.getElementById('remarksModalAddress').innerHTML = `<b>${escapeHtml((territory.no ? `[${territory.no}] ` : '') + (territory.address || ''))}</b>`;
+      const targetLabel = `${territory.no ? `[${territory.no}] ` : ''}${territory.address || ''}`;
+      document.getElementById('remarksModalAddress').innerHTML = `<b>${escapeHtml(targetLabel)}</b>`;
       const input = document.getElementById('remarksInput');
       input.value = territory.remarks || '';
       document.getElementById('btnRemarksSave').onclick = () => {
@@ -701,7 +707,7 @@
         if (item && item.val && String(item.val).trim() !== '') {
           const parts = String(k).split('-');
           const y = item.year ? parseInt(item.year, 10) : parseInt(parts[0], 10);
-          const m = item.monthNum ? parseInt(item.monthNum, 10) : parseInt(parts.slice(-1)[0], 10);
+          const m = item.monthNum ? parseInt(item.monthNum, 10) : parseInt(parts[1] || parts[0], 10);
           validItems.push({ year: y, monthNum: m, val: item.val, score: (y * 100) + m });
         }
       }
@@ -720,7 +726,7 @@
         if (item && item.val && String(item.val).trim() !== '') {
           const parts = String(k).split('-');
           const y = item.year ? parseInt(item.year, 10) : parseInt(parts[0], 10);
-          const m = item.monthNum ? parseInt(item.monthNum, 10) : parseInt(parts.slice(-1)[0], 10);
+          const m = item.monthNum ? parseInt(item.monthNum, 10) : parseInt(parts[1] || parts[0], 10);
           validItems.push({ year: y, monthNum: m, val: item.val, score: (y * 100) + m });
         }
       }
