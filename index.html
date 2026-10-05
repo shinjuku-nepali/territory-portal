@@ -106,7 +106,7 @@
     input:checked + .slider { background-color: var(--primary); }
     input:checked + .slider:before { transform: translateX(20px); }
 
-    /* Login Screen */
+    /* Centered Login Container */
     .login-container {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       height: 100vh; width: 100vw; padding: 24px; background-color: var(--bg);
@@ -138,7 +138,7 @@
     .screen { display: none; flex: 1; overflow-y: auto; padding: 12px; -webkit-overflow-scrolling: touch; }
     .screen.active { display: block; }
 
-    /* Search Bar Styling */
+    /* Search Bar */
     .search-box-container {
       position: relative;
       margin-bottom: 12px;
@@ -212,16 +212,15 @@
     }
     .territory-card.is-overdue { border-left: 5px solid var(--overdue-red); background-color: var(--overdue-bg); }
     .card-top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-    .card-address { font-size: var(--font-address); font-weight: 700; color: var(--text-main); line-height: 1.35; flex: 1; }
-    .no-tag { color: var(--primary); margin-right: 4px; font-weight: 800; }
+    .card-address { font-size: var(--font-address); font-weight: 700; color: var(--text-main); line-height: 1.35; flex: 1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .no-tag { color: var(--primary); margin-right: 2px; font-weight: 800; }
     
-    /* Dedicated Vector Shape Render Container */
+    /* Decoded Vector Shape Render Container */
     .card-shape-holder {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      margin-left: 10px;
     }
     .embedded-vector-shape {
       width: 24px;
@@ -434,7 +433,7 @@
         darkModeLabel: "डार्क मोड", fontSizeLabel: "अक्षरको आकार (±१०%)", resetHint: "रिसेट", allPill: "सबै",
         overduePill: "⚠️ ६+ महिना बाँकी", noFolders: "कुनै फोल्डर फेला परेन।", noFiles: "कुनै स्प्रिडसिट फेला परेन।",
         noTerritories: "यस पानामा इलाकाको कुनै विवरण फेला परेन।", currentMonthPrefix: "चालु महिना : ",
-        lastVisitTitle: "पछिल्लो भेटको रेकर्ड", noPreviousMarks: "अघिल्लो कुनै record छैन",
+        lastVisitTitle: "पछिल्लो भेटको रेकर्ड", noPreviousMarks: "अघिल्लो कुनै रेकर्ड छैन",
         showOlderMonths: "📅 पुराना महिनाहरू / वर्षहरू हेर्नुहोस् ▾", clearBtn: "हटाउनुहोस्", markLabel: "चिन्ह",
         notVisitedIn: "भेट नभएको", neverVisited: "भेट नभएको", confirmHeader: "पुष्टि गर्नुहोस्", confirmBtn: "निश्चित गर्नुहोस्",
         cancelBtn: "रद्द गर्नुहोस्", saving: "सुरक्षित हुँदैछ...", saved: "सुरक्षित भयो ✓", loadingFolders: "फोल्डरहरू लोड हुँदैछ...",
@@ -482,11 +481,6 @@
         formatMonthDisplay: (year, mNum) => `${year} ${I18N.en.monthNames[Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1]}`
       }
     };
-
-    function toDevanagariNumerals(str) {
-      const d = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
-      return String(str).replace(/[0-9]/g, w => d[+w]);
-    }
 
     const sessionCache = { subfolders: null, folderFiles: {}, sheetData: {} };
     let state = {
@@ -914,8 +908,8 @@
         const item = marksMap[k];
         if (item && item.val && String(item.val).trim() !== '') {
           const parts = String(k).split('-');
-          const y = item.year ? parseInt(item.year, 10) : parseInt(parts[0], 10);
-          const m = item.monthNum ? parseInt(item.monthNum, 10) : parseInt(parts || parts[0], 10);
+          const y = parseInt(item.year || parts[0], 10);
+          const m = parseInt(item.monthNum || parts, 10);
           validItems.push({ year: y, monthNum: m, val: item.val, score: (y * 100) + m });
         }
       }
@@ -933,8 +927,8 @@
         const item = marksMap[k];
         if (item && item.val && String(item.val).trim() !== '') {
           const parts = String(k).split('-');
-          const y = item.year ? parseInt(item.year, 10) : parseInt(parts[0], 10);
-          const m = item.monthNum ? parseInt(item.monthNum, 10) : parseInt(parts || parts[0], 10);
+          const y = parseInt(item.year || parts[0], 10);
+          const m = parseInt(item.monthNum || parts, 10);
           validItems.push({ year: y, monthNum: m, val: item.val, score: (y * 100) + m });
         }
       }
@@ -958,7 +952,7 @@
       const activeKey = `${activeYear}-${activeMonthNum}`;
       const currentMonthCol = data.monthColumns.find(mc => mc.year === activeYear && mc.monthNum === activeMonthNum) || data.monthColumns[0];
 
-      // Retrieve dynamic vector shape styles
+      // Retrieve and decode vector shape styles
       const shapeMeta = data.fileShapeMeta || { shapeType: "RECTANGLE", color: "#666666" };
       let borderRadius = "0px";
       if (shapeMeta.shapeType === "ROUND_RECTANGLE") borderRadius = "6px";
@@ -984,7 +978,7 @@
 
         card.innerHTML = `
           <div class="card-top-row">
-            <!-- Header Address & Decoded Vector Shape badge -->
+            <!-- Header Address & Correct Vector Shape badge -->
             <div class="card-address">
               ${noPrefix}${escapeHtml(tData.address || '')}
               <span class="card-shape-holder">
