@@ -89,7 +89,7 @@
     .settings-label { font-size: 13.5px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
 
     .segmented-group { display: flex; gap: 4px; background: var(--btn-bg); border: 1px solid var(--border); border-radius: 8px; padding: 2px; width: 100%; }
-    .segmented-btn { flex: 1; padding: 6px 0; border: none; background: transparent; color: var(--text-sub); font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; text-align: center; }
+    .segmented-btn { flex: 1; padding: 6px 0; border: none; background: transparent; color: var(--text-sub); font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; text-align: center; font-family: inherit; }
     .segmented-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     body.dark-theme .segmented-btn.active { background: #333333; color: var(--primary); }
 
@@ -138,7 +138,7 @@
     .screen { display: none; flex: 1; overflow-y: auto; padding: 12px; -webkit-overflow-scrolling: touch; }
     .screen.active { display: block; }
 
-    /* Search Bar */
+    /* Search Bar Styling */
     .search-box-container {
       position: relative;
       margin-bottom: 12px;
@@ -256,6 +256,7 @@
 
     .history-box { padding-top: 4px; }
     .history-title { font-size: 11px; font-weight: 700; margin-bottom: 4px; }
+    .history-items-container { display: flex; flex-direction: column; gap: 2px; }
     .history-item { font-size: var(--font-history); line-height: 1.4; }
     .year-accordion { margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 6px; }
     .accordion-toggle { font-size: 11.5px; color: var(--primary); cursor: pointer; font-weight: 600; }
@@ -481,6 +482,11 @@
         formatMonthDisplay: (year, mNum) => `${year} ${I18N.en.monthNames[Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1]}`
       }
     };
+
+    function toDevanagariNumerals(str) {
+      const d = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+      return String(str).replace(/[0-9]/g, w => d[+w]);
+    }
 
     const sessionCache = { subfolders: null, folderFiles: {}, sheetData: {} };
     let state = {
@@ -909,7 +915,11 @@
         if (item && item.val && String(item.val).trim() !== '') {
           const parts = String(k).split('-');
           const y = parseInt(item.year || parts[0], 10);
-          const m = parseInt(item.monthNum || parts, 10);
+          
+          // Fixed array element reference safely prevents numeric year offset breaks
+          const mIndex = 1;
+          const m = parseInt(item.monthNum || parts[mIndex] || parts[0], 10);
+          
           validItems.push({ year: y, monthNum: m, val: item.val, score: (y * 100) + m });
         }
       }
@@ -928,7 +938,11 @@
         if (item && item.val && String(item.val).trim() !== '') {
           const parts = String(k).split('-');
           const y = parseInt(item.year || parts[0], 10);
-          const m = parseInt(item.monthNum || parts, 10);
+          
+          // Fixed array element reference safely prevents numeric year offset breaks
+          const mIndex = 1;
+          const m = parseInt(item.monthNum || parts[mIndex] || parts[0], 10);
+          
           validItems.push({ year: y, monthNum: m, val: item.val, score: (y * 100) + m });
         }
       }
@@ -973,7 +987,8 @@
         card.id = `card_${tData.rowIndex}`;
         card.dataset.overdue = overdueInfo.isOverdue ? "true" : "false";
 
-        const noPrefix = tData.no ? `<span class="no-tag">[${escapeHtml(state.lang === 'ne' ? toDevanagariNumerals(tData.no) : tData.no)}]</span>` : '';
+        const noDisplay = state.lang === 'ne' ? toDevanagariNumerals(tData.no) : tData.no;
+        const noPrefix = tData.no ? `<span class="no-tag">[${escapeHtml(noDisplay)}]</span>` : '';
         const targetLabel = `${tData.no ? `[${tData.no}] ` : ''}${tData.address || ''}`;
 
         card.innerHTML = `
