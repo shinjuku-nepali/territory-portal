@@ -109,14 +109,24 @@
     /* Login Screen */
     .login-container {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      height: 100%; padding: 24px; text-align: center; background: var(--bg);
+      height: 100vh; width: 100vw; padding: 24px; background-color: var(--bg);
+      position: fixed; top: 0; left: 0; z-index: 1000;
     }
     .login-card {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px;
       padding: 32px 24px; max-width: 360px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
     }
-    .login-card h2 { margin: 0 0 8px 0; font-size: 20px; }
-    .login-card p { font-size: 13.5px; color: var(--text-sub); margin: 0 0 24px 0; line-height: 1.5; }
+    .login-card h2 { margin: 0 0 10px 0; font-size: 22px; color: var(--text-main); font-weight: 700; }
+    .login-card p { font-size: 14px; color: var(--text-sub); margin: 0 0 24px 0; line-height: 1.5; }
+    
+    .google-btn-wrapper {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin-top: 4px;
+    }
 
     /* App Views */
     .breadcrumb {
@@ -127,6 +137,56 @@
     .breadcrumb-item { cursor: pointer; color: var(--primary); font-weight: 500; }
     .screen { display: none; flex: 1; overflow-y: auto; padding: 12px; -webkit-overflow-scrolling: touch; }
     .screen.active { display: block; }
+
+    /* Search Bar Styling */
+    .search-box-container {
+      position: relative;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      font-size: 15px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      padding: 10px 36px 10px 36px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text-main);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+    }
+    .search-clear-btn {
+      position: absolute;
+      right: 10px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+    .search-clear-btn:hover {
+      color: var(--text-main);
+    }
 
     .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
     .folder-card, .file-card {
@@ -154,6 +214,22 @@
     .card-top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
     .card-address { font-size: var(--font-address); font-weight: 700; color: var(--text-main); line-height: 1.35; flex: 1; }
     .no-tag { color: var(--primary); margin-right: 4px; font-weight: 800; }
+    
+    /* Dedicated Vector Shape Render Container */
+    .card-shape-holder {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-left: 10px;
+    }
+    .embedded-vector-shape {
+      width: 24px;
+      height: 24px;
+      border: 1.5px solid #000000;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+
     .overdue-badge { display: none; background: var(--overdue-badge-bg); color: var(--overdue-red); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 10px; }
     .territory-card.is-overdue .overdue-badge { display: inline-flex; }
     .card-meta { font-size: var(--font-meta); color: var(--text-sub); margin-bottom: 2px; }
@@ -207,7 +283,7 @@
 <body>
 
   <!-- App Header -->
-  <header id="mainHeader">
+  <header id="mainHeader" style="display:none;">
     <div class="header-title">
       <span>📍</span>
       <span id="txtHeaderTitle">इलाका सूची</span>
@@ -260,30 +336,46 @@
   <div id="loginScreen" class="login-container">
     <div class="login-card">
       <div style="font-size:36px; margin-bottom:12px;">🔒</div>
-      <h2>Territory Portal</h2>
+      <h2 id="txtLoginPortalHeader">इलाका सूची</h2>
       <p id="txtLoginPrompt">कृपया अधिकृत Gmail खाताबाट लगइन गर्नुहोस्।</p>
-      <div id="g_id_onload"
-           data-client_id="752070145895-49kenu29mj4jfei3di41nahpvkv69ded.apps.googleusercontent.com"
-           data-callback="handleCredentialResponse"
-           data-auto_prompt="false">
+      
+      <!-- Google Sign In Button Container (Centered) -->
+      <div class="google-btn-wrapper">
+        <div id="g_id_signin_button"></div>
       </div>
-      <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large"></div>
+
+      <!-- Compact Language Selector at the bottom of the Login Card -->
+      <div class="segmented-group" style="margin-top: 24px; max-width: 240px;">
+        <button type="button" class="segmented-btn" id="btnLocalEn" onclick="setLanguage('en')">EN</button>
+        <button type="button" class="segmented-btn" id="btnLocalJa" onclick="setLanguage('ja')">日本語</button>
+        <button type="button" class="segmented-btn" id="btnLocalNe" onclick="setLanguage('ne')">नेपाली</button>
+      </div>
     </div>
   </div>
 
   <!-- Authenticated App Content -->
   <div id="appBody" style="display:none; flex-direction:column; height:100%; overflow:hidden;">
-    <div class="breadcrumb" id="breadcrumbBar">
-      <span class="breadcrumb-item" onclick="navToFolders()">फोल्डरहरू</span>
-    </div>
+    <div class="breadcrumb" id="breadcrumbBar"></div>
 
     <!-- Screen 1: Subfolders -->
     <div class="screen active" id="foldersScreen">
+      <!-- Search bar at the top of Folders Screen -->
+      <div class="search-box-container">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="folderSearchInput" class="search-input" placeholder="फोल्डर खोज्नुहोस्..." oninput="onFolderSearchInput(this.value)">
+        <button type="button" class="search-clear-btn" id="folderSearchClearBtn" onclick="clearFolderSearch()">✕</button>
+      </div>
       <div class="grid-container" id="foldersList"></div>
     </div>
 
-    <!-- Screen 2: Files -->
+    <!-- Screen 2: Files (Inside Folder) -->
     <div class="screen" id="filesScreen">
+      <!-- Search bar at the very top of Folder files view -->
+      <div class="search-box-container">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="fileSearchInput" class="search-input" placeholder="स्प्रिडसिट खोज्नुहोस्..." oninput="onFileSearchInput(this.value)">
+        <button type="button" class="search-clear-btn" id="fileSearchClearBtn" onclick="clearFileSearch()">✕</button>
+      </div>
       <div class="grid-container" id="filesList"></div>
     </div>
 
@@ -334,6 +426,7 @@
     // BACKEND CONFIGURATION
     // ==========================================
     const API_URL = "https://script.google.com/macros/s/AKfycbxEPDMp3nbccWAfzEBNZH3kCwm2UgyVQzyAFKrlDZNxzEMyjUlCQ9mX4ROKdN1HWmxf/exec";
+    const GOOGLE_CLIENT_ID = "752070145895-49kenu29mj4jfei3di41nahpvkv69ded.apps.googleusercontent.com";
 
     const I18N = {
       ne: {
@@ -341,12 +434,14 @@
         darkModeLabel: "डार्क मोड", fontSizeLabel: "अक्षरको आकार (±१०%)", resetHint: "रिसेट", allPill: "सबै",
         overduePill: "⚠️ ६+ महिना बाँकी", noFolders: "कुनै फोल्डर फेला परेन।", noFiles: "कुनै स्प्रिडसिट फेला परेन।",
         noTerritories: "यस पानामा इलाकाको कुनै विवरण फेला परेन।", currentMonthPrefix: "चालु महिना : ",
-        lastVisitTitle: "पछिल्लो भेटको रेकर्ड", noPreviousMarks: "अघिल्लो कुनै रेकर्ड छैन",
+        lastVisitTitle: "पछिल्लो भेटको रेकर्ड", noPreviousMarks: "अघिल्लो कुनै record छैन",
         showOlderMonths: "📅 पुराना महिनाहरू / वर्षहरू हेर्नुहोस् ▾", clearBtn: "हटाउनुहोस्", markLabel: "चिन्ह",
         notVisitedIn: "भेट नभएको", neverVisited: "भेट नभएको", confirmHeader: "पुष्टि गर्नुहोस्", confirmBtn: "निश्चित गर्नुहोस्",
         cancelBtn: "रद्द गर्नुहोस्", saving: "सुरक्षित हुँदैछ...", saved: "सुरक्षित भयो ✓", loadingFolders: "फोल्डरहरू लोड हुँदैछ...",
         loadingFiles: "फाइलहरू लोड हुँदैछ...", parsingCards: "इलाका कार्डहरू तयार गरिँदैछ...", editRemarksHeader: "टिप्पणी सम्पादन गर्नुहोस्",
         remarksPlaceholder: "यहाँ टिप्पणी लेख्नुहोस्...", saveBtn: "सुरक्षित गर्नुहोस्", emptyRemarksText: "+ टिप्पणी थप्नुहोस्...",
+        searchFilesPlaceholder: "स्प्रिडसिट खोज्नुहोस्...", searchFoldersPlaceholder: "फोल्डर खोज्नुहोस्...",
+        noSearchResults: "कुनै मिल्दो स्प्रिडसिट फेला परेन।", loginCardPrompt: "कृपया अधिकृत Gmail खाताबाट लगइन गर्नुहोस्।",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `के तपाईं यस इलाकाको लागि चिन्ह "<b>${mark === '' ? 'हटाउन' : mark}</b>" राख्न निश्चित हुनुहुन्छ?<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">महिना: ${monthLabel}</small>`,
         monthNames: ["जनवरी", "फेब्रुअरी", "मार्च", "अप्रिल", "मे", "जुन", "जुलाई", "अगस्ट", "सेप्टेम्बर", "अक्टोबर", "नोभेम्बर", "डिसेम्बर"],
         formatMonthDisplay: (year, mNum) => {
@@ -364,15 +459,14 @@
         confirmBtn: "確定", cancelBtn: "キャンセル", saving: "保存中...", saved: "保存しました ✓", loadingFolders: "フォルダを読み込み中...",
         loadingFiles: "ファイルを読み込み中...", parsingCards: "区域カードを作成中...", editRemarksHeader: "備考の編集",
         remarksPlaceholder: "ここに備考を入力...", saveBtn: "保存", emptyRemarksText: "+ 備考を追加...",
+        searchFilesPlaceholder: "スプレッドシートを検索...", searchFoldersPlaceholder: "フォルダを検索...",
+        noSearchResults: "一致するスプレッドシートが見つかりません。", loginCardPrompt: "登録済みのGoogleアカウントでログインしてください。",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `以下の区域の訪問記号を「<b>${mark === '' ? '取消' : mark}</b>」に変更しますか？<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">対象月: ${monthLabel}</small>`,
         monthNames: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
-        formatMonthDisplay: (year, mNum) => {
-          const idx = Math.max(1, Math.min(12, parseInt(mNum, 10) || 1));
-          return `${year}年 ${idx}月`;
-        }
+        formatMonthDisplay: (year, mNum) => `${year}年 ${Math.max(1, Math.min(12, parseInt(mNum, 10) || 1))}月`
       },
       en: {
-        portalTitle: "Territory", foldersCrumb: "Folders", prefTitle: "Preferences", langLabel: "Language / 言語 / भाषा",
+        portalTitle: "Territory Portal", foldersCrumb: "Folders", prefTitle: "Preferences", langLabel: "Language / 言語 / भाषा",
         darkModeLabel: "Dark Mode", fontSizeLabel: "Font Size (±10%)", resetHint: "Reset", allPill: "All",
         overduePill: "⚠️ Overdue 6+ mos", noFolders: "No folders found.", noFiles: "No spreadsheets found.",
         noTerritories: "No territory rows detected in this sheet.", currentMonthPrefix: "Current Month : ",
@@ -381,12 +475,11 @@
         confirmBtn: "Confirm", cancelBtn: "Cancel", saving: "Saving...", saved: "Saved ✓", loadingFolders: "Loading folders...",
         loadingFiles: "Fetching files...", parsingCards: "Parsing territory cards...", editRemarksHeader: "Edit Remarks",
         remarksPlaceholder: "Add notes/remarks here...", saveBtn: "Save", emptyRemarksText: "+ Add notes / remarks...",
+        searchFilesPlaceholder: "Search spreadsheets...", searchFoldersPlaceholder: "Search folders...",
+        noSearchResults: "No matching spreadsheets found.", loginCardPrompt: "Please sign in with an authorized Google account.",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `${mark === '' ? 'Clear the mark' : `Set mark to <b>${mark}</b>`} for:<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">Month: ${monthLabel}</small>`,
         monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-        formatMonthDisplay: (year, mNum) => {
-          const idx = Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1;
-          return `${year} ${I18N.en.monthNames[idx]}`;
-        }
+        formatMonthDisplay: (year, mNum) => `${year} ${I18N.en.monthNames[Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1]}`
       }
     };
 
@@ -418,6 +511,8 @@
       if (savedToken) {
         state.idToken = savedToken;
         startApp();
+      } else {
+        renderGoogleSignInButton();
       }
     };
 
@@ -429,8 +524,33 @@
       }
     }
 
+    function renderGoogleSignInButton() {
+      if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
+        setTimeout(renderGoogleSignInButton, 100);
+        return;
+      }
+      
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse
+      });
+
+      const buttonContainer = document.getElementById('g_id_signin_button');
+      if (buttonContainer) {
+        buttonContainer.innerHTML = '';
+        google.accounts.id.renderButton(buttonContainer, {
+          type: 'standard',
+          shape: 'rectangular',
+          theme: 'outline',
+          size: 'large',
+          locale: state.lang === 'ne' ? 'ne' : (state.lang === 'ja' ? 'ja' : 'en')
+        });
+      }
+    }
+
     function startApp() {
       document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('mainHeader').style.display = 'flex';
       document.getElementById('appBody').style.display = 'flex';
       updateStaticUIStrings();
       updateBreadcrumbs();
@@ -482,18 +602,33 @@
     function setLanguage(lang) {
       state.lang = lang;
       localStorage.setItem('territory_portal_lang', lang);
+      
       applyLanguageUI();
       updateStaticUIStrings();
       updateBreadcrumbs();
+
+      if (document.getElementById('loginScreen').style.display !== 'none') {
+        renderGoogleSignInButton();
+      }
+
       if (state.activeSheetData) renderTerritoryCards(state.activeSheetData);
-      else if (state.currentFolderId && sessionCache.folderFiles[state.currentFolderId]) renderFiles(sessionCache.folderFiles[state.currentFolderId]);
-      else if (sessionCache.subfolders) renderFolders(sessionCache.subfolders);
+      else if (state.currentFolderId && sessionCache.folderFiles[state.currentFolderId]) {
+        const query = document.getElementById('fileSearchInput')?.value || '';
+        filterRenderFiles(query);
+      } else if (sessionCache.subfolders) {
+        const query = document.getElementById('folderSearchInput')?.value || '';
+        filterRenderFolders(query);
+      }
     }
 
     function applyLanguageUI() {
       document.getElementById('btnLangEn')?.classList.toggle('active', state.lang === 'en');
       document.getElementById('btnLangJa')?.classList.toggle('active', state.lang === 'ja');
       document.getElementById('btnLangNe')?.classList.toggle('active', state.lang === 'ne');
+
+      document.getElementById('btnLocalEn')?.classList.toggle('active', state.lang === 'en');
+      document.getElementById('btnLocalJa')?.classList.toggle('active', state.lang === 'ja');
+      document.getElementById('btnLocalNe')?.classList.toggle('active', state.lang === 'ne');
     }
 
     function updateStaticUIStrings() {
@@ -512,8 +647,18 @@
       setSafeText('remarksModalHeader', cur.editRemarksHeader);
       setSafeText('btnRemarksCancel', cur.cancelBtn);
       setSafeText('btnRemarksSave', cur.saveBtn);
+
+      setSafeText('txtLoginPortalHeader', cur.portalTitle);
+      setSafeText('txtLoginPrompt', cur.loginCardPrompt);
+
       const remInput = document.getElementById('remarksInput');
       if (remInput) remInput.placeholder = cur.remarksPlaceholder;
+
+      const fSearch = document.getElementById('fileSearchInput');
+      if (fSearch) fSearch.placeholder = cur.searchFilesPlaceholder;
+
+      const folderSearch = document.getElementById('folderSearchInput');
+      if (folderSearch) folderSearch.placeholder = cur.searchFoldersPlaceholder;
     }
 
     function initTheme() {
@@ -626,10 +771,45 @@
       bar.innerHTML = html;
     }
 
-    function navToFolders() { state.currentFolderId = null; state.currentFileId = null; showScreen('foldersScreen'); }
+    function navToFolders() { 
+      state.currentFolderId = null; 
+      state.currentFileId = null; 
+      showScreen('foldersScreen');
+      clearFolderSearch();
+    }
+
     function navToFiles(folderId, folderName) {
-      state.currentFolderId = folderId; state.currentFolderName = folderName; state.currentFileId = null;
-      showScreen('filesScreen'); loadFiles(folderId);
+      state.currentFolderId = folderId; 
+      state.currentFolderName = folderName; 
+      state.currentFileId = null;
+      showScreen('filesScreen'); 
+      clearFileSearch();
+      loadFiles(folderId);
+    }
+
+    function onFolderSearchInput(query) {
+      const clearBtn = document.getElementById('folderSearchClearBtn');
+      if (clearBtn) clearBtn.style.display = query ? 'flex' : 'none';
+      filterRenderFolders(query);
+    }
+
+    function clearFolderSearch() {
+      const input = document.getElementById('folderSearchInput');
+      if (input) input.value = '';
+      const clearBtn = document.getElementById('folderSearchClearBtn');
+      if (clearBtn) clearBtn.style.display = 'none';
+      filterRenderFolders('');
+    }
+
+    function filterRenderFolders(query) {
+      const allFolders = sessionCache.subfolders || [];
+      const q = (query || '').trim().toLowerCase();
+      if (!q) {
+        renderFolders(allFolders);
+        return;
+      }
+      const filtered = allFolders.filter(f => f.name.toLowerCase().includes(q));
+      renderFolders(filtered, true);
     }
 
     async function loadFolders() {
@@ -643,9 +823,9 @@
       finally { hideLoader(); }
     }
 
-    function renderFolders(folders) {
+    function renderFolders(folders, isSearching = false) {
       const list = document.getElementById('foldersList');
-      list.innerHTML = folders.length ? '' : `<p style="color:var(--text-sub); padding:12px;">${t().noFolders}</p>`;
+      list.innerHTML = folders.length ? '' : `<p style="color:var(--text-sub); padding:12px; grid-column:1/-1;">${isSearching ? t().noSearchResults : t().noFolders}</p>`;
       folders.forEach(f => {
         const item = document.createElement('div');
         item.className = 'folder-card';
@@ -655,8 +835,36 @@
       });
     }
 
+    function onFileSearchInput(query) {
+      const clearBtn = document.getElementById('fileSearchClearBtn');
+      if (clearBtn) clearBtn.style.display = query ? 'flex' : 'none';
+      filterRenderFiles(query);
+    }
+
+    function clearFileSearch() {
+      const input = document.getElementById('fileSearchInput');
+      if (input) input.value = '';
+      const clearBtn = document.getElementById('fileSearchClearBtn');
+      if (clearBtn) clearBtn.style.display = 'none';
+      filterRenderFiles('');
+    }
+
+    function filterRenderFiles(query) {
+      const allFiles = sessionCache.folderFiles[state.currentFolderId] || [];
+      const q = (query || '').trim().toLowerCase();
+      if (!q) {
+        renderFiles(allFiles);
+        return;
+      }
+      const filtered = allFiles.filter(f => f.name.toLowerCase().includes(q));
+      renderFiles(filtered, true);
+    }
+
     async function loadFiles(folderId) {
-      if (sessionCache.folderFiles[folderId]) { renderFiles(sessionCache.folderFiles[folderId]); return; }
+      if (sessionCache.folderFiles[folderId]) { 
+        renderFiles(sessionCache.folderFiles[folderId]); 
+        return; 
+      }
       showLoader(t().loadingFiles);
       try {
         const files = await apiRequest("getSpreadsheets", { folderId: folderId });
@@ -666,9 +874,9 @@
       finally { hideLoader(); }
     }
 
-    function renderFiles(files) {
+    function renderFiles(files, isSearching = false) {
       const list = document.getElementById('filesList');
-      list.innerHTML = files.length ? '' : `<p style="color:var(--text-sub); padding:12px;">${t().noFiles}</p>`;
+      list.innerHTML = files.length ? '' : `<p style="color:var(--text-sub); padding:12px; grid-column:1/-1;">${isSearching ? t().noSearchResults : t().noFiles}</p>`;
       files.forEach(f => {
         const item = document.createElement('div');
         item.className = 'file-card';
@@ -707,7 +915,7 @@
         if (item && item.val && String(item.val).trim() !== '') {
           const parts = String(k).split('-');
           const y = item.year ? parseInt(item.year, 10) : parseInt(parts[0], 10);
-          const m = item.monthNum ? parseInt(item.monthNum, 10) : parseInt(parts[1] || parts[0], 10);
+          const m = item.monthNum ? parseInt(item.monthNum, 10) : parseInt(parts || parts[0], 10);
           validItems.push({ year: y, monthNum: m, val: item.val, score: (y * 100) + m });
         }
       }
@@ -726,7 +934,7 @@
         if (item && item.val && String(item.val).trim() !== '') {
           const parts = String(k).split('-');
           const y = item.year ? parseInt(item.year, 10) : parseInt(parts[0], 10);
-          const m = item.monthNum ? parseInt(item.monthNum, 10) : parseInt(parts[1] || parts[0], 10);
+          const m = item.monthNum ? parseInt(item.monthNum, 10) : parseInt(parts || parts[0], 10);
           validItems.push({ year: y, monthNum: m, val: item.val, score: (y * 100) + m });
         }
       }
@@ -750,6 +958,12 @@
       const activeKey = `${activeYear}-${activeMonthNum}`;
       const currentMonthCol = data.monthColumns.find(mc => mc.year === activeYear && mc.monthNum === activeMonthNum) || data.monthColumns[0];
 
+      // Retrieve dynamic vector shape styles
+      const shapeMeta = data.fileShapeMeta || { shapeType: "RECTANGLE", color: "#666666" };
+      let borderRadius = "0px";
+      if (shapeMeta.shapeType === "ROUND_RECTANGLE") borderRadius = "6px";
+      else if (shapeMeta.shapeType === "ELLIPSE") borderRadius = "50%";
+
       let overdueCount = 0;
       data.territories.forEach((tData) => {
         const currentMarkObj = tData.marks[activeKey] || {};
@@ -770,7 +984,13 @@
 
         card.innerHTML = `
           <div class="card-top-row">
-            <div class="card-address">${noPrefix}${escapeHtml(tData.address || '')}</div>
+            <!-- Header Address & Decoded Vector Shape badge -->
+            <div class="card-address">
+              ${noPrefix}${escapeHtml(tData.address || '')}
+              <span class="card-shape-holder">
+                <div class="embedded-vector-shape" style="background-color: ${shapeMeta.color}; border-radius: ${borderRadius};"></div>
+              </span>
+            </div>
             <div class="overdue-badge" id="badge_${tData.rowIndex}">⚠️ ${t().notVisitedIn} (${escapeHtml(overdueInfo.label)})</div>
           </div>
           <div class="card-meta">${escapeHtml([tData.city, tData.cong].filter(Boolean).join(' ・ '))}</div>
