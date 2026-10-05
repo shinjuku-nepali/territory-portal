@@ -89,7 +89,7 @@
     .settings-label { font-size: 13.5px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
 
     .segmented-group { display: flex; gap: 4px; background: var(--btn-bg); border: 1px solid var(--border); border-radius: 8px; padding: 2px; width: 100%; }
-    .segmented-btn { flex: 1; padding: 6px 0; border: none; background: transparent; color: var(--text-sub); font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; text-align: center; font-family: inherit; }
+    .segmented-btn { flex: 1; padding: 6px 0; border: none; background: transparent; color: var(--text-sub); font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; text-align: center; }
     .segmented-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     body.dark-theme .segmented-btn.active { background: #333333; color: var(--primary); }
 
@@ -121,6 +121,7 @@
     .login-card h2 { margin: 0 0 10px 0; font-size: 22px; color: var(--text-main); font-weight: 700; }
     .login-card p { font-size: 14px; color: var(--text-sub); margin: 0 0 24px 0; line-height: 1.5; }
     
+    /* Centered google signin button container */
     .google-btn-wrapper {
       width: 100%;
       display: flex;
@@ -212,23 +213,8 @@
     }
     .territory-card.is-overdue { border-left: 5px solid var(--overdue-red); background-color: var(--overdue-bg); }
     .card-top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-    .card-address { font-size: var(--font-address); font-weight: 700; color: var(--text-main); line-height: 1.35; flex: 1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .no-tag { color: var(--primary); margin-right: 2px; font-weight: 800; }
-    
-    /* Decoded Vector Shape Render Container */
-    .card-shape-holder {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .embedded-vector-shape {
-      width: 24px;
-      height: 24px;
-      border: 1.5px solid #000000;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-    }
-
+    .card-address { font-size: var(--font-address); font-weight: 700; color: var(--text-main); line-height: 1.35; flex: 1; }
+    .no-tag { color: var(--primary); margin-right: 4px; font-weight: 800; }
     .overdue-badge { display: none; background: var(--overdue-badge-bg); color: var(--overdue-red); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 10px; }
     .territory-card.is-overdue .overdue-badge { display: inline-flex; }
     .card-meta { font-size: var(--font-meta); color: var(--text-sub); margin-bottom: 2px; }
@@ -256,7 +242,6 @@
 
     .history-box { padding-top: 4px; }
     .history-title { font-size: 11px; font-weight: 700; margin-bottom: 4px; }
-    .history-items-container { display: flex; flex-direction: column; gap: 2px; }
     .history-item { font-size: var(--font-history); line-height: 1.4; }
     .year-accordion { margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 6px; }
     .accordion-toggle { font-size: 11.5px; color: var(--primary); cursor: pointer; font-weight: 600; }
@@ -282,7 +267,7 @@
 </head>
 <body>
 
-  <!-- App Header -->
+  <!-- App Header (Hidden when on Login Screen, Shown on Auth) -->
   <header id="mainHeader" style="display:none;">
     <div class="header-title">
       <span>📍</span>
@@ -444,10 +429,7 @@
         noSearchResults: "कुनै मिल्दो स्प्रिडसिट फेला परेन।", loginCardPrompt: "कृपया अधिकृत Gmail खाताबाट लगइन गर्नुहोस्।",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `के तपाईं यस इलाकाको लागि चिन्ह "<b>${mark === '' ? 'हटाउन' : mark}</b>" राख्न निश्चित हुनुहुन्छ?<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">महिना: ${monthLabel}</small>`,
         monthNames: ["जनवरी", "फेब्रुअरी", "मार्च", "अप्रिल", "मे", "जुन", "जुलाई", "अगस्ट", "सेप्टेम्बर", "अक्टोबर", "नोभेम्बर", "डिसेम्बर"],
-        formatMonthDisplay: (year, mNum) => {
-          const idx = Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1;
-          return `${toDevanagariNumerals(year)} ${I18N.ne.monthNames[idx]}`;
-        }
+        formatMonthDisplay: (year, mNum) => `${toDevanagariNumerals(year)} ${I18N.ne.monthNames[Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1]}`
       },
       ja: {
         portalTitle: "区域一覧", foldersCrumb: "フォルダ一覧", prefTitle: "設定", langLabel: "言語 / Language",
@@ -483,11 +465,6 @@
       }
     };
 
-    function toDevanagariNumerals(str) {
-      const d = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
-      return String(str).replace(/[0-9]/g, w => d[+w]);
-    }
-
     const sessionCache = { subfolders: null, folderFiles: {}, sheetData: {} };
     let state = {
       idToken: null, userEmail: null,
@@ -512,6 +489,7 @@
         state.idToken = savedToken;
         startApp();
       } else {
+        // Redraw Google Button on initial load
         renderGoogleSignInButton();
       }
     };
@@ -524,6 +502,9 @@
       }
     }
 
+    /**
+     * Renders/Translates the official Google Sign-In button dynamically
+     */
     function renderGoogleSignInButton() {
       if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
         setTimeout(renderGoogleSignInButton, 100);
@@ -537,13 +518,13 @@
 
       const buttonContainer = document.getElementById('g_id_signin_button');
       if (buttonContainer) {
-        buttonContainer.innerHTML = '';
+        buttonContainer.innerHTML = ''; // Clear prior elements
         google.accounts.id.renderButton(buttonContainer, {
           type: 'standard',
           shape: 'rectangular',
           theme: 'outline',
           size: 'large',
-          locale: state.lang === 'ne' ? 'ne' : (state.lang === 'ja' ? 'ja' : 'en')
+          locale: state.lang === 'ne' ? 'ne' : (state.lang === 'ja' ? 'ja' : 'en') // Dynamic language integration
         });
       }
     }
@@ -607,6 +588,7 @@
       updateStaticUIStrings();
       updateBreadcrumbs();
 
+      // Instantly redraw the Google Button to reflect language change
       if (document.getElementById('loginScreen').style.display !== 'none') {
         renderGoogleSignInButton();
       }
@@ -622,10 +604,12 @@
     }
 
     function applyLanguageUI() {
+      // Main settings layout buttons
       document.getElementById('btnLangEn')?.classList.toggle('active', state.lang === 'en');
       document.getElementById('btnLangJa')?.classList.toggle('active', state.lang === 'ja');
       document.getElementById('btnLangNe')?.classList.toggle('active', state.lang === 'ne');
 
+      // Login screen card buttons
       document.getElementById('btnLocalEn')?.classList.toggle('active', state.lang === 'en');
       document.getElementById('btnLocalJa')?.classList.toggle('active', state.lang === 'ja');
       document.getElementById('btnLocalNe')?.classList.toggle('active', state.lang === 'ne');
@@ -648,6 +632,7 @@
       setSafeText('btnRemarksCancel', cur.cancelBtn);
       setSafeText('btnRemarksSave', cur.saveBtn);
 
+      // Login Panel strings
       setSafeText('txtLoginPortalHeader', cur.portalTitle);
       setSafeText('txtLoginPrompt', cur.loginCardPrompt);
 
@@ -787,6 +772,9 @@
       loadFiles(folderId);
     }
 
+    // ==========================================
+    // FOLDERS SCREEN SEARCH LOGIC
+    // ==========================================
     function onFolderSearchInput(query) {
       const clearBtn = document.getElementById('folderSearchClearBtn');
       if (clearBtn) clearBtn.style.display = query ? 'flex' : 'none';
@@ -835,6 +823,9 @@
       });
     }
 
+    // ==========================================
+    // SPREADSHEET FILES SEARCH LOGIC (In Folder)
+    // ==========================================
     function onFileSearchInput(query) {
       const clearBtn = document.getElementById('fileSearchClearBtn');
       if (clearBtn) clearBtn.style.display = query ? 'flex' : 'none';
@@ -914,12 +905,8 @@
         const item = marksMap[k];
         if (item && item.val && String(item.val).trim() !== '') {
           const parts = String(k).split('-');
-          const y = parseInt(item.year || parts[0], 10);
-          
-          // Fixed array element reference safely prevents numeric year offset breaks
-          const mIndex = 1;
-          const m = parseInt(item.monthNum || parts[mIndex] || parts[0], 10);
-          
+          const y = item.year ? parseInt(item.year, 10) : parseInt(parts[0], 10);
+          const m = item.monthNum ? parseInt(item.monthNum, 10) : parseInt(parts || parts[0], 10);
           validItems.push({ year: y, monthNum: m, val: item.val, score: (y * 100) + m });
         }
       }
@@ -937,12 +924,8 @@
         const item = marksMap[k];
         if (item && item.val && String(item.val).trim() !== '') {
           const parts = String(k).split('-');
-          const y = parseInt(item.year || parts[0], 10);
-          
-          // Fixed array element reference safely prevents numeric year offset breaks
-          const mIndex = 1;
-          const m = parseInt(item.monthNum || parts[mIndex] || parts[0], 10);
-          
+          const y = item.year ? parseInt(item.year, 10) : parseInt(parts[0], 10);
+          const m = item.monthNum ? parseInt(item.monthNum, 10) : parseInt(parts || parts[0], 10);
           validItems.push({ year: y, monthNum: m, val: item.val, score: (y * 100) + m });
         }
       }
@@ -966,12 +949,6 @@
       const activeKey = `${activeYear}-${activeMonthNum}`;
       const currentMonthCol = data.monthColumns.find(mc => mc.year === activeYear && mc.monthNum === activeMonthNum) || data.monthColumns[0];
 
-      // Retrieve and decode vector shape styles
-      const shapeMeta = data.fileShapeMeta || { shapeType: "RECTANGLE", color: "#666666" };
-      let borderRadius = "0px";
-      if (shapeMeta.shapeType === "ROUND_RECTANGLE") borderRadius = "6px";
-      else if (shapeMeta.shapeType === "ELLIPSE") borderRadius = "50%";
-
       let overdueCount = 0;
       data.territories.forEach((tData) => {
         const currentMarkObj = tData.marks[activeKey] || {};
@@ -987,19 +964,12 @@
         card.id = `card_${tData.rowIndex}`;
         card.dataset.overdue = overdueInfo.isOverdue ? "true" : "false";
 
-        const noDisplay = state.lang === 'ne' ? toDevanagariNumerals(tData.no) : tData.no;
-        const noPrefix = tData.no ? `<span class="no-tag">[${escapeHtml(noDisplay)}]</span>` : '';
+        const noPrefix = tData.no ? `<span class="no-tag">[${escapeHtml(state.lang === 'ne' ? toDevanagariNumerals(tData.no) : tData.no)}]</span>` : '';
         const targetLabel = `${tData.no ? `[${tData.no}] ` : ''}${tData.address || ''}`;
 
         card.innerHTML = `
           <div class="card-top-row">
-            <!-- Header Address & Correct Vector Shape badge -->
-            <div class="card-address">
-              ${noPrefix}${escapeHtml(tData.address || '')}
-              <span class="card-shape-holder">
-                <div class="embedded-vector-shape" style="background-color: ${shapeMeta.color}; border-radius: ${borderRadius};"></div>
-              </span>
-            </div>
+            <div class="card-address">${noPrefix}${escapeHtml(tData.address || '')}</div>
             <div class="overdue-badge" id="badge_${tData.rowIndex}">⚠️ ${t().notVisitedIn} (${escapeHtml(overdueInfo.label)})</div>
           </div>
           <div class="card-meta">${escapeHtml([tData.city, tData.cong].filter(Boolean).join(' ・ '))}</div>
