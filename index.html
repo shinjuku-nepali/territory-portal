@@ -106,7 +106,7 @@
     input:checked + .slider { background-color: var(--primary); }
     input:checked + .slider:before { transform: translateX(20px); }
 
-    /* Upper Centered Mobile Login Card Layout */
+    /* Centered Mobile Login Card Layout */
     .login-container {
       display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
       height: 100vh; width: 100vw; padding: 24px; background-color: var(--bg);
@@ -162,22 +162,8 @@
     }
     .territory-card.is-overdue { border-left: 5px solid var(--overdue-red); background-color: var(--overdue-bg); }
     .card-top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-    .card-address { font-size: var(--font-address); font-weight: 700; color: var(--text-main); line-height: 1.35; flex: 1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .no-tag { color: var(--primary); margin-right: 2px; font-weight: 800; }
-    
-    /* Decoded Vector Shape Render Container */
-    .card-shape-holder {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .embedded-vector-shape {
-      width: 24px;
-      height: 24px;
-      border: 1.5px solid #000000;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-    }
+    .card-address { font-size: var(--font-address); font-weight: 700; color: var(--text-main); line-height: 1.35; flex: 1; }
+    .no-tag { color: var(--primary); margin-right: 4px; font-weight: 800; }
 
     .overdue-badge { display: none; background: var(--overdue-badge-bg); color: var(--overdue-red); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 10px; }
     .territory-card.is-overdue .overdue-badge { display: inline-flex; }
@@ -298,7 +284,7 @@
       <div class="segmented-group" style="margin-top: 24px; max-width: 240px;">
         <button type="button" class="segmented-btn" id="btnLocalEn" onclick="setLanguage('en')">EN</button>
         <button type="button" class="segmented-btn" id="btnLocalJa" onclick="setLanguage('ja')">日本語</button>
-        <button type="button" class="segmented-btn" id="btnLocalNe" onclick="setLanguage('ne')">नेपाली</button>
+        <button type="button" class="segmented-btn active" id="btnLocalNe" onclick="setLanguage('ne')">नेपाली</button>
       </div>
     </div>
   </div>
@@ -379,10 +365,13 @@
         loadingFiles: "फाइलहरू लोड हुँदैछ...", parsingCards: "इलाका कार्डहरू तयार गरिँदैछ...", editRemarksHeader: "टिप्पणी सम्पादन गर्नुहोस्",
         remarksPlaceholder: "यहाँ टिप्पणी लेख्नुहोस्...", saveBtn: "सुरक्षित गर्नुहोस्", emptyRemarksText: "+ टिप्पणी थप्नुहोस्...",
         loginCardPrompt: "कृपया अधिकृत Google खाताबाट लगइन गर्नुहोस्।",
-        googleButtonText: "Google मार्फत साइन गर्नुहोस", 
+        googleButtonText: "Google मार्फत साइन गर्नुहोस",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `के तपाईं यस इलाकाको लागि चिन्ह "<b>${mark === '' ? 'हटाउन' : mark}</b>" राख्न निश्चित हुनुहुन्छ?<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">महिना: ${monthLabel}</small>`,
         monthNames: ["जनवरी", "फेब्रुअरी", "मार्च", "अप्रिल", "मे", "जुन", "जुलाई", "अगस्ट", "सेप्टेम्बर", "अक्टोबर", "नोभेम्बर", "डिसेम्बर"],
-        formatMonthDisplay: (year, mNum) => `${toDevanagariNumerals(year)} ${I18N.ne.monthNames[Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1]}`
+        formatMonthDisplay: (year, mNum) => {
+          const idx = Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1;
+          return `${toDevanagariNumerals(year)} ${I18N.ne.monthNames[idx]}`;
+        }
       },
       ja: {
         portalTitle: "区域一覧", foldersCrumb: "フォルダ一覧", prefTitle: "設定", langLabel: "言語 / Language",
@@ -392,7 +381,7 @@
         lastVisitTitle: "前回の訪問記録", noPreviousMarks: "記録なし", showOlderMonths: "📅 過去の記録 / 年度を表示 ▾",
         clearBtn: "取消", markLabel: "訪問記号", notVisitedIn: "未訪問", neverVisited: "未訪問", confirmHeader: "訪問記録の確認",
         confirmBtn: "確定", cancelBtn: "キャンセル", saving: "保存中...", saved: "保存しました ✓", loadingFolders: "フォルダを読み込み中...",
-        loadingFiles: "ファイルを読み込み中...", parsingCards: "区域カードを作成中...", editRemarksHeader: "備考 of 編集",
+        loadingFiles: "ファイルを読み込み中...", parsingCards: "区域カードを作成中...", editRemarksHeader: "備考の編集",
         remarksPlaceholder: "ここに備考を入力...", saveBtn: "保存", emptyRemarksText: "+ 備考を追加...",
         loginCardPrompt: "登録済みのGoogleアカウントでログインしてください。",
         googleButtonText: "Googleでログイン",
@@ -423,7 +412,6 @@
       return String(str).replace(/[0-9]/g, w => d[+w]);
     }
 
-    // High-performance client memory storage (sessionCache)
     const sessionCache = { subfolders: null, folderFiles: {}, sheetData: {} };
     let state = {
       idToken: null, userEmail: null,
@@ -498,7 +486,7 @@
       location.reload();
     }
 
-    // High-speed API router with exponential backoff retries for slow connections
+    // High-speed API router with backoff retries for slow connections
     async function apiRequest(action, payload = {}, retries = 3) {
       if (!state.idToken) throw new Error("Authentication required.");
 
@@ -511,7 +499,7 @@
       for (let attempt = 1; attempt <= retries; attempt++) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 second limit
+          const timeoutId = setTimeout(() => controller.abort(), 12000);
 
           const response = await fetch(API_URL, {
             method: "POST",
@@ -523,7 +511,6 @@
           clearTimeout(timeoutId);
 
           if (response.status === 403 && attempt < retries) {
-            // Wait 1.2 seconds and retry on network drop
             await new Promise(r => setTimeout(r, 1200));
             continue;
           }
@@ -546,7 +533,6 @@
           if (attempt === retries) {
             throw new Error(err.message || "Network timeout. Please check your signal and reload the page.");
           }
-          // Exponential backoff delay
           await new Promise(r => setTimeout(r, 1000 * attempt));
         }
       }
@@ -749,7 +735,7 @@
 
     function renderFolders(folders) {
       const list = document.getElementById('foldersList');
-      list.innerHTML = folders.length ? '' : `<p style="color:var(--text-sub); padding:12px; grid-column:1/-1;">${t().noFolders}</p>`;
+      list.innerHTML = folders.length ? '' : `<p style="color:var(--text-sub); padding:12px;">${t().noFolders}</p>`;
       folders.forEach(f => {
         const item = document.createElement('div');
         item.className = 'folder-card';
@@ -772,7 +758,7 @@
 
     function renderFiles(files) {
       const list = document.getElementById('filesList');
-      list.innerHTML = files.length ? '' : `<p style="color:var(--text-sub); padding:12px; grid-column:1/-1;">${t().noFiles}</p>`;
+      list.innerHTML = files.length ? '' : `<p style="color:var(--text-sub); padding:12px;">${t().noFiles}</p>`;
       files.forEach(f => {
         const item = document.createElement('div');
         item.className = 'file-card';
@@ -811,11 +797,7 @@
         if (item && item.val && String(item.val).trim() !== '') {
           const parts = String(k).split('-');
           const y = parseInt(item.year || parts[0], 10);
-          
-          // Defensive fallback: extracts second array element safely
-          const mIndex = 1;
-          const m = parseInt(item.monthNum || parts[mIndex] || parts[0], 10);
-          
+          const m = parseInt(item.monthNum || (parts.length > 1 ? parts[1] : parts[0]), 10);
           validItems.push({ year: y, monthNum: m, val: item.val, score: (y * 100) + m });
         }
       }
@@ -834,11 +816,7 @@
         if (item && item.val && String(item.val).trim() !== '') {
           const parts = String(k).split('-');
           const y = parseInt(item.year || parts[0], 10);
-          
-          // Defensive fallback: extracts second array element safely
-          const mIndex = 1;
-          const m = parseInt(item.monthNum || parts[mIndex] || parts[0], 10);
-          
+          const m = parseInt(item.monthNum || (parts.length > 1 ? parts[1] : parts[0]), 10);
           validItems.push({ year: y, monthNum: m, val: item.val, score: (y * 100) + m });
         }
       }
@@ -862,12 +840,6 @@
       const activeKey = `${activeYear}-${activeMonthNum}`;
       const currentMonthCol = data.monthColumns.find(mc => mc.year === activeYear && mc.monthNum === activeMonthNum) || data.monthColumns[0];
 
-      // Retrieve and decode vector shape styles
-      const shapeMeta = data.fileShapeMeta || { shapeType: "RECTANGLE", color: "#666666" };
-      let borderRadius = "0px";
-      if (shapeMeta.shapeType === "ROUND_RECTANGLE") borderRadius = "6px";
-      else if (shapeMeta.shapeType === "ELLIPSE") borderRadius = "50%";
-
       let overdueCount = 0;
       data.territories.forEach((tData) => {
         const currentMarkObj = tData.marks[activeKey] || {};
@@ -883,18 +855,13 @@
         card.id = `card_${tData.rowIndex}`;
         card.dataset.overdue = overdueInfo.isOverdue ? "true" : "false";
 
-        const noDisplay = state.lang === 'ne' ? toDevanagariNumerals(tData.no) : tData.no;
-        const noPrefix = tData.no ? `<span class="no-tag">[${escapeHtml(noDisplay)}]</span>` : '';
+        const noPrefix = tData.no ? `<span class="no-tag">[${escapeHtml(state.lang === 'ne' ? toDevanagariNumerals(tData.no) : tData.no)}]</span>` : '';
         const targetLabel = `${tData.no ? `[${tData.no}] ` : ''}${tData.address || ''}`;
 
+        // Clean card header: Address and No. only (No unwanted shapes)
         card.innerHTML = `
           <div class="card-top-row">
-            <div class="card-address">
-              ${noPrefix}${escapeHtml(tData.address || '')}
-              <span class="card-shape-holder">
-                <div class="embedded-vector-shape" style="background-color: ${shapeMeta.color}; border-radius: ${borderRadius};"></div>
-              </span>
-            </div>
+            <div class="card-address">${noPrefix}${escapeHtml(tData.address || '')}</div>
             <div class="overdue-badge" id="badge_${tData.rowIndex}">⚠️ ${t().notVisitedIn} (${escapeHtml(overdueInfo.label)})</div>
           </div>
           <div class="card-meta">${escapeHtml([tData.city, tData.cong].filter(Boolean).join(' ・ '))}</div>
