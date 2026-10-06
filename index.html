@@ -7,9 +7,6 @@
   <!-- Google Identity Services Library -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
-    /* ==========================================
-       THEME & DYNAMIC FONT VARIABLES
-       ========================================== */
     :root {
       --primary: #1a73e8;
       --bg: #f5f6f8;
@@ -30,7 +27,6 @@
       --overdue-border: #f7c8c4;
       --modal-box-bg: #ffffff;
       --toast-bg: #323232;
-      /* Dynamic Typography Scale (Default: 1.0 = 100%) */
       --font-scale: 1;
       --font-address: calc(17px * var(--font-scale));
       --font-meta: calc(13px * var(--font-scale));
@@ -38,7 +34,6 @@
       --font-action: calc(14px * var(--font-scale));
       --font-btn-height: calc(32px * var(--font-scale));
     }
-    /* Dark Mode Theme */
     body.dark-theme {
       --primary: #8ab4f8;
       --bg: #121212;
@@ -384,7 +379,7 @@
         loadingFiles: "फाइलहरू लोड हुँदैछ...", parsingCards: "इलाका कार्डहरू तयार गरिँदैछ...", editRemarksHeader: "टिप्पणी सम्पादन गर्नुहोस्",
         remarksPlaceholder: "यहाँ टिप्पणी लेख्नुहोस्...", saveBtn: "सुरक्षित गर्नुहोस्", emptyRemarksText: "+ टिप्पणी थप्नुहोस्...",
         loginCardPrompt: "कृपया अधिकृत Google खाताबाट लगइन गर्नुहोस्।",
-        googleButtonText: "Google मार्फत साइन गर्नुहोस", // Corrected Devanagari translation label
+        googleButtonText: "Google मार्फत साइन गर्नुहोस", 
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `के तपाईं यस इलाकाको लागि चिन्ह "<b>${mark === '' ? 'हटाउन' : mark}</b>" राख्न निश्चित हुनुहुन्छ?<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">महिना: ${monthLabel}</small>`,
         monthNames: ["जनवरी", "फेब्रुअरी", "मार्च", "अप्रिल", "मे", "जुन", "जुलाई", "अगस्ट", "सेप्टेम्बर", "अक्टोबर", "नोभेम्बर", "डिसेम्बर"],
         formatMonthDisplay: (year, mNum) => `${toDevanagariNumerals(year)} ${I18N.ne.monthNames[Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1]}`
@@ -397,7 +392,7 @@
         lastVisitTitle: "前回の訪問記録", noPreviousMarks: "記録なし", showOlderMonths: "📅 過去の記録 / 年度を表示 ▾",
         clearBtn: "取消", markLabel: "訪問記号", notVisitedIn: "未訪問", neverVisited: "未訪問", confirmHeader: "訪問記録の確認",
         confirmBtn: "確定", cancelBtn: "キャンセル", saving: "保存中...", saved: "保存しました ✓", loadingFolders: "フォルダを読み込み中...",
-        loadingFiles: "ファイルを読み込み中...", parsingCards: "区域カードを作成中...", editRemarksHeader: "備考の編集",
+        loadingFiles: "ファイルを読み込み中...", parsingCards: "区域カードを作成中...", editRemarksHeader: "備考 of 編集",
         remarksPlaceholder: "ここに備考を入力...", saveBtn: "保存", emptyRemarksText: "+ 備考を追加...",
         loginCardPrompt: "登録済みのGoogleアカウントでログインしてください。",
         googleButtonText: "Googleでログイン",
@@ -423,6 +418,12 @@
       }
     };
 
+    function toDevanagariNumerals(str) {
+      const d = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+      return String(str).replace(/[0-9]/g, w => d[+w]);
+    }
+
+    // High-performance client memory storage (sessionCache)
     const sessionCache = { subfolders: null, folderFiles: {}, sheetData: {} };
     let state = {
       idToken: null, userEmail: null,
@@ -497,7 +498,7 @@
       location.reload();
     }
 
-    // High-speed secure REST caller with built-in auto-retry on 403 / slow loads
+    // High-speed API router with exponential backoff retries for slow connections
     async function apiRequest(action, payload = {}, retries = 3) {
       if (!state.idToken) throw new Error("Authentication required.");
 
@@ -510,7 +511,7 @@
       for (let attempt = 1; attempt <= retries; attempt++) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 second fail-safe timeout
+          const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 second limit
 
           const response = await fetch(API_URL, {
             method: "POST",
@@ -522,8 +523,8 @@
           clearTimeout(timeoutId);
 
           if (response.status === 403 && attempt < retries) {
-            // Log direct connection server-side glitch; wait 1 sec and retry
-            await new Promise(r => setTimeout(r, 1000));
+            // Wait 1.2 seconds and retry on network drop
+            await new Promise(r => setTimeout(r, 1200));
             continue;
           }
 
@@ -543,9 +544,10 @@
           return res.data;
         } catch (err) {
           if (attempt === retries) {
-            throw new Error(err.message || "Slow network connection. Please check your signal and reload.");
+            throw new Error(err.message || "Network timeout. Please check your signal and reload the page.");
           }
-          await new Promise(r => setTimeout(r, 800 * attempt)); // Exponential backoff retry
+          // Exponential backoff delay
+          await new Promise(r => setTimeout(r, 1000 * attempt));
         }
       }
     }
@@ -809,7 +811,11 @@
         if (item && item.val && String(item.val).trim() !== '') {
           const parts = String(k).split('-');
           const y = parseInt(item.year || parts[0], 10);
-          const m = parseInt(item.monthNum || parts.slice(-1)[0], 10);
+          
+          // Defensive fallback: extracts second array element safely
+          const mIndex = 1;
+          const m = parseInt(item.monthNum || parts[mIndex] || parts[0], 10);
+          
           validItems.push({ year: y, monthNum: m, val: item.val, score: (y * 100) + m });
         }
       }
@@ -828,7 +834,11 @@
         if (item && item.val && String(item.val).trim() !== '') {
           const parts = String(k).split('-');
           const y = parseInt(item.year || parts[0], 10);
-          const m = parseInt(item.monthNum || parts.slice(-1)[0], 10);
+          
+          // Defensive fallback: extracts second array element safely
+          const mIndex = 1;
+          const m = parseInt(item.monthNum || parts[mIndex] || parts[0], 10);
+          
           validItems.push({ year: y, monthNum: m, val: item.val, score: (y * 100) + m });
         }
       }
@@ -873,7 +883,8 @@
         card.id = `card_${tData.rowIndex}`;
         card.dataset.overdue = overdueInfo.isOverdue ? "true" : "false";
 
-        const noPrefix = tData.no ? `<span class="no-tag">[${escapeHtml(state.lang === 'ne' ? toDevanagariNumerals(tData.no) : tData.no)}]</span>` : '';
+        const noDisplay = state.lang === 'ne' ? toDevanagariNumerals(tData.no) : tData.no;
+        const noPrefix = tData.no ? `<span class="no-tag">[${escapeHtml(noDisplay)}]</span>` : '';
         const targetLabel = `${tData.no ? `[${tData.no}] ` : ''}${tData.address || ''}`;
 
         card.innerHTML = `
