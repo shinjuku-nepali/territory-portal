@@ -685,6 +685,13 @@
       }
       try {
         await apiRequest("updateRemarks", { fileId: state.currentFileId, sheetName: state.currentSheetName, rowIndex: rowIndex, newRemarks: newRemarks });
+        
+        // Update LocalStorage Cache
+        const cacheKey = `territory_cache_${state.currentFileId}_${state.currentSheetName || 'default'}`;
+        if (state.activeSheetData) {
+          localStorage.setItem(cacheKey, JSON.stringify(state.activeSheetData));
+        }
+
         showToast(t().saved);
       } catch (err) { alert(err.message); }
     }
@@ -768,24 +775,40 @@
       });
     }
 
+    // --- CARDS & LOCALSTORAGE CACHING (FIX 2) ---
     async function openTerritoryCards(fileId, fileName, optSheetName) {
-      state.currentFileId = fileId; state.currentFileName = fileName;
+      state.currentFileId = fileId; 
+      state.currentFileName = fileName;
       showScreen('cardsScreen');
-      const cacheKey = `${fileId}_${optSheetName || 'default'}`;
-      if (sessionCache.sheetData[cacheKey]) {
-        state.activeSheetData = sessionCache.sheetData[cacheKey];
-        renderTerritoryCards(state.activeSheetData);
-        return;
+
+      const cacheKey = `territory_cache_${fileId}_${optSheetName || 'default'}`;
+      const localCached = localStorage.getItem(cacheKey);
+
+      // 1. Instant load from browser local storage (<10ms)[cite: 2]
+      if (localCached) {
+        const parsed = JSON.parse(localCached);
+        state.currentSheetName = parsed.activeSheet;
+        state.activeSheetData = parsed;
+        renderTerritoryCards(parsed);
+      } else {
+        showLoader(t().parsingCards);
       }
-      showLoader(t().parsingCards);
+
+      // 2. Async background fetch from Google Apps Script[cite: 2]
       try {
         const res = await apiRequest("getTerritoryCards", { fileId: fileId, sheetName: optSheetName });
         state.currentSheetName = res.activeSheet;
         sessionCache.sheetData[`${fileId}_${res.activeSheet}`] = res;
         state.activeSheetData = res;
+
+        // Save fresh data into localStorage
+        localStorage.setItem(cacheKey, JSON.stringify(res));
         renderTerritoryCards(res);
-      } catch (err) { alert(err.message); }
-      finally { hideLoader(); }
+      } catch (err) { 
+        if (!localCached) alert(err.message); 
+      } finally { 
+        hideLoader(); 
+      }
     }
 
     function checkOverdueStatus(marksMap) {
@@ -883,7 +906,7 @@
           <div class="history-box">
             <div class="history-title">${t().lastVisitTitle}</div>
             <div class="history-items-container">
-              ${historyList.length ? historyList.map(h => `<div class="history-item">${h.display}: ${h.val}</div>`).join('') : `<div class="history-item" style="color:var(--text-muted);">${t().noPreviousMarks}</div>`}
+              ${historyList.length ? historyList.map(h => `<div class="history-item">${h.display}:${h.val}</div>`).join('') : `<div class="history-item" style="color:var(--text-muted);">${t().noPreviousMarks}</div>`}
             </div>
           </div>
           <div class="year-accordion">
@@ -1002,6 +1025,13 @@
 
       try {
         await apiRequest("updateCellMark", { fileId: state.currentFileId, sheetName: state.currentSheetName, row: rowIndex, col: colIndex, mark: mark });
+        
+        // Update LocalStorage Cache
+        const cacheKey = `territory_cache_${state.currentFileId}_${state.currentSheetName || 'default'}`;
+        if (state.activeSheetData) {
+          localStorage.setItem(cacheKey, JSON.stringify(state.activeSheetData));
+        }
+
         showToast(t().saved);
       } catch (err) { alert(err.message); }
     }
