@@ -111,39 +111,17 @@
     input:checked + .slider { background-color: var(--primary); }
     input:checked + .slider:before { transform: translateX(20px); }
 
-    /* ==========================================
-       FIXED: UPPER-CENTERED MOBILE LOGIN LAYOUT
-       ========================================== */
+    /* Upper Centered Mobile Login Card Layout */
     .login-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background-color: var(--bg);
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start; /* Keeps positioning locked relative to screen top */
-      padding: 16px;
-      overflow-y: auto;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      height: 100vh; width: 100vw; padding: 24px; background-color: var(--bg);
+      position: fixed; top: 0; left: 0; z-index: 1000; overflow-y: auto;
     }
     .login-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 32px 24px;
-      max-width: 360px;
-      width: 100%;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      margin-top: 15vh; /* Places the card perfectly in the upper-middle segment */
-      flex-shrink: 0;
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px;
+      padding: 32px 24px; max-width: 360px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; margin-top: 15vh; flex-shrink: 0;
     }
     .login-card h2 { margin: 0 0 10px 0; font-size: 22px; color: var(--text-main); font-weight: 700; }
     .login-card p { font-size: 14px; color: var(--text-sub); margin: 0 0 24px 0; line-height: 1.5; }
@@ -189,8 +167,23 @@
     }
     .territory-card.is-overdue { border-left: 5px solid var(--overdue-red); background-color: var(--overdue-bg); }
     .card-top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-    .card-address { font-size: var(--font-address); font-weight: 700; color: var(--text-main); line-height: 1.35; flex: 1; }
-    .no-tag { color: var(--primary); margin-right: 4px; font-weight: 800; }
+    .card-address { font-size: var(--font-address); font-weight: 700; color: var(--text-main); line-height: 1.35; flex: 1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .no-tag { color: var(--primary); margin-right: 2px; font-weight: 800; }
+    
+    /* Decoded Vector Shape Render Container */
+    .card-shape-holder {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .embedded-vector-shape {
+      width: 24px;
+      height: 24px;
+      border: 1.5px solid #000000;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+
     .overdue-badge { display: none; background: var(--overdue-badge-bg); color: var(--overdue-red); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 10px; }
     .territory-card.is-overdue .overdue-badge { display: inline-flex; }
     .card-meta { font-size: var(--font-meta); color: var(--text-sub); margin-bottom: 2px; }
@@ -218,6 +211,7 @@
 
     .history-box { padding-top: 4px; }
     .history-title { font-size: 11px; font-weight: 700; margin-bottom: 4px; }
+    .history-items-container { display: flex; flex-direction: column; gap: 2px; }
     .history-item { font-size: var(--font-history); line-height: 1.4; }
     .year-accordion { margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 6px; }
     .accordion-toggle { font-size: 11.5px; color: var(--primary); cursor: pointer; font-weight: 600; }
@@ -298,7 +292,7 @@
     <div class="login-card">
       <div style="font-size:36px; margin-bottom:12px;">🔒</div>
       <h2 id="txtLoginPortalHeader">इलाका सूची</h2>
-      <p id="txtLoginPrompt">कृपया अधिकृत Gmail खाताबाट लगइन गर्नुहोस्।</p>
+      <p id="txtLoginPrompt">कृपया अधिकृत Google खाताबाट लगइन गर्नुहोस्।</p>
       
       <!-- Google Sign In Button Container (Centered) -->
       <div class="google-btn-wrapper">
@@ -389,13 +383,11 @@
         cancelBtn: "रद्द गर्नुहोस्", saving: "सुरक्षित हुँदैछ...", saved: "सुरक्षित भयो ✓", loadingFolders: "फोल्डरहरू लोड हुँदैछ...",
         loadingFiles: "फाइलहरू लोड हुँदैछ...", parsingCards: "इलाका कार्डहरू तयार गरिँदैछ...", editRemarksHeader: "टिप्पणी सम्पादन गर्नुहोस्",
         remarksPlaceholder: "यहाँ टिप्पणी लेख्नुहोस्...", saveBtn: "सुरक्षित गर्नुहोस्", emptyRemarksText: "+ टिप्पणी थप्नुहोस्...",
-        loginCardPrompt: "कृपया अधिकृत Gmail खाताबाट लगइन गर्नुहोस्।",
+        loginCardPrompt: "कृपया अधिकृत Google खाताबाट लगइन गर्नुहोस्।",
+        googleButtonText: "Google मार्फत साइन गर्नुहोस", // Corrected Devanagari translation label
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `के तपाईं यस इलाकाको लागि चिन्ह "<b>${mark === '' ? 'हटाउन' : mark}</b>" राख्न निश्चित हुनुहुन्छ?<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">महिना: ${monthLabel}</small>`,
         monthNames: ["जनवरी", "फेब्रुअरी", "मार्च", "अप्रिल", "मे", "जुन", "जुलाई", "अगस्ट", "सेप्टेम्बर", "अक्टोबर", "नोभेम्बर", "डिसेम्बर"],
-        formatMonthDisplay: (year, mNum) => {
-          const idx = Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1;
-          return `${toDevanagariNumerals(year)} ${I18N.ne.monthNames[idx]}`;
-        }
+        formatMonthDisplay: (year, mNum) => `${toDevanagariNumerals(year)} ${I18N.ne.monthNames[Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1]}`
       },
       ja: {
         portalTitle: "区域一覧", foldersCrumb: "フォルダ一覧", prefTitle: "設定", langLabel: "言語 / Language",
@@ -408,6 +400,7 @@
         loadingFiles: "ファイルを読み込み中...", parsingCards: "区域カードを作成中...", editRemarksHeader: "備考の編集",
         remarksPlaceholder: "ここに備考を入力...", saveBtn: "保存", emptyRemarksText: "+ 備考を追加...",
         loginCardPrompt: "登録済みのGoogleアカウントでログインしてください。",
+        googleButtonText: "Googleでログイン",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `以下の区域の訪問記号を「<b>${mark === '' ? '取消' : mark}</b>」に変更しますか？<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">対象月: ${monthLabel}</small>`,
         monthNames: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
         formatMonthDisplay: (year, mNum) => `${year}年 ${Math.max(1, Math.min(12, parseInt(mNum, 10) || 1))}月`
@@ -423,16 +416,12 @@
         loadingFiles: "Fetching files...", parsingCards: "Parsing territory cards...", editRemarksHeader: "Edit Remarks",
         remarksPlaceholder: "Add notes/remarks here...", saveBtn: "Save", emptyRemarksText: "+ Add notes / remarks...",
         loginCardPrompt: "Please sign in with an authorized Google account.",
+        googleButtonText: "Sign in with Google",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `${mark === '' ? 'Clear the mark' : `Set mark to <b>${mark}</b>`} for:<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">Month: ${monthLabel}</small>`,
         monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
         formatMonthDisplay: (year, mNum) => `${year} ${I18N.en.monthNames[Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1]}`
       }
     };
-
-    function toDevanagariNumerals(str) {
-      const d = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
-      return String(str).replace(/[0-9]/g, w => d[+w]);
-    }
 
     const sessionCache = { subfolders: null, folderFiles: {}, sheetData: {} };
     let state = {
@@ -508,7 +497,8 @@
       location.reload();
     }
 
-    async function apiRequest(action, payload = {}) {
+    // High-speed secure REST caller with built-in auto-retry on 403 / slow loads
+    async function apiRequest(action, payload = {}, retries = 3) {
       if (!state.idToken) throw new Error("Authentication required.");
 
       const bodyData = {
@@ -517,26 +507,47 @@
         payload: payload
       };
 
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(bodyData)
-      });
+      for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 second fail-safe timeout
 
-      const res = await response.json();
-      if (res.status === "unauthorized") {
-        alert(res.message);
-        signOutUser();
-        throw new Error(res.message);
+          const response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(bodyData),
+            signal: controller.signal
+          });
+
+          clearTimeout(timeoutId);
+
+          if (response.status === 403 && attempt < retries) {
+            // Log direct connection server-side glitch; wait 1 sec and retry
+            await new Promise(r => setTimeout(r, 1000));
+            continue;
+          }
+
+          const res = await response.json();
+          if (res.status === "unauthorized") {
+            alert(res.message);
+            signOutUser();
+            throw new Error(res.message);
+          }
+          if (res.status !== "success") {
+            throw new Error(res.message || "Request failed");
+          }
+          if (res.user) {
+            const badge = document.getElementById('userBadge');
+            if (badge) { badge.textContent = res.user; badge.style.display = 'inline'; }
+          }
+          return res.data;
+        } catch (err) {
+          if (attempt === retries) {
+            throw new Error(err.message || "Slow network connection. Please check your signal and reload.");
+          }
+          await new Promise(r => setTimeout(r, 800 * attempt)); // Exponential backoff retry
+        }
       }
-      if (res.status !== "success") {
-        throw new Error(res.message || "Request failed");
-      }
-      if (res.user) {
-        const badge = document.getElementById('userBadge');
-        if (badge) { badge.textContent = res.user; badge.style.display = 'inline'; }
-      }
-      return res.data;
     }
 
     function initLanguage() {
