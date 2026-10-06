@@ -111,9 +111,7 @@
     input:checked + .slider { background-color: var(--primary); }
     input:checked + .slider:before { transform: translateX(20px); }
 
-    /* ==========================================
-       FIXED: UPPER-CENTERED MOBILE LOGIN LAYOUT
-       ========================================== */
+    /* Upper Centered Mobile Login Card Layout */
     .login-container {
       position: fixed;
       top: 0;
@@ -125,7 +123,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start; /* Keeps positioning locked relative to screen top */
+      justify-content: flex-start;
       padding: 16px;
       overflow-y: auto;
     }
@@ -142,7 +140,7 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      margin-top: 15vh; /* Places the card perfectly in the upper-middle segment */
+      margin-top: 15vh;
       flex-shrink: 0;
     }
     .login-card h2 { margin: 0 0 10px 0; font-size: 22px; color: var(--text-main); font-weight: 700; }
@@ -189,8 +187,23 @@
     }
     .territory-card.is-overdue { border-left: 5px solid var(--overdue-red); background-color: var(--overdue-bg); }
     .card-top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-    .card-address { font-size: var(--font-address); font-weight: 700; color: var(--text-main); line-height: 1.35; flex: 1; }
-    .no-tag { color: var(--primary); margin-right: 4px; font-weight: 800; }
+    .card-address { font-size: var(--font-address); font-weight: 700; color: var(--text-main); line-height: 1.35; flex: 1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .no-tag { color: var(--primary); margin-right: 2px; font-weight: 800; }
+    
+    /* Decoded Vector Shape Render Container */
+    .card-shape-holder {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .embedded-vector-shape {
+      width: 24px;
+      height: 24px;
+      border: 1.5px solid #000000;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+
     .overdue-badge { display: none; background: var(--overdue-badge-bg); color: var(--overdue-red); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 10px; }
     .territory-card.is-overdue .overdue-badge { display: inline-flex; }
     .card-meta { font-size: var(--font-meta); color: var(--text-sub); margin-bottom: 2px; }
@@ -218,6 +231,7 @@
 
     .history-box { padding-top: 4px; }
     .history-title { font-size: 11px; font-weight: 700; margin-bottom: 4px; }
+    .history-items-container { display: flex; flex-direction: column; gap: 2px; }
     .history-item { font-size: var(--font-history); line-height: 1.4; }
     .year-accordion { margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 6px; }
     .accordion-toggle { font-size: 11.5px; color: var(--primary); cursor: pointer; font-weight: 600; }
@@ -298,7 +312,7 @@
     <div class="login-card">
       <div style="font-size:36px; margin-bottom:12px;">🔒</div>
       <h2 id="txtLoginPortalHeader">इलाका सूची</h2>
-      <p id="txtLoginPrompt">कृपया अधिकृत Gmail खाताबाट लगइन गर्नुहोस्।</p>
+      <p id="txtLoginPrompt">कृपया अधिकृत Google खाताबाट लगइन गर्नुहोस्।</p>
       
       <!-- Google Sign In Button Container (Centered) -->
       <div class="google-btn-wrapper">
@@ -389,7 +403,7 @@
         cancelBtn: "रद्द गर्नुहोस्", saving: "सुरक्षित हुँदैछ...", saved: "सुरक्षित भयो ✓", loadingFolders: "फोल्डरहरू लोड हुँदैछ...",
         loadingFiles: "फाइलहरू लोड हुँदैछ...", parsingCards: "इलाका कार्डहरू तयार गरिँदैछ...", editRemarksHeader: "टिप्पणी सम्पादन गर्नुहोस्",
         remarksPlaceholder: "यहाँ टिप्पणी लेख्नुहोस्...", saveBtn: "सुरक्षित गर्नुहोस्", emptyRemarksText: "+ टिप्पणी थप्नुहोस्...",
-        loginCardPrompt: "कृपया अधिकृत Gmail खाताबाट लगइन गर्नुहोस्।",
+        loginCardPrompt: "कृपया अधिकृत Google खाताबाट लगइन गर्नुहोस्।",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `के तपाईं यस इलाकाको लागि चिन्ह "<b>${mark === '' ? 'हटाउन' : mark}</b>" राख्न निश्चित हुनुहुन्छ?<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">महिना: ${monthLabel}</small>`,
         monthNames: ["जनवरी", "फेब्रुअरी", "मार्च", "अप्रिल", "मे", "जुन", "जुलाई", "अगस्ट", "सेप्टेम्बर", "अक्टोबर", "नोभेम्बर", "डिसेम्बर"],
         formatMonthDisplay: (year, mNum) => {
@@ -599,6 +613,9 @@
       if (remInput) remInput.placeholder = cur.remarksPlaceholder;
     }
 
+    // ==========================================
+    // THEME & ±10% FONT STEPPER LOGIC
+    // ==========================================
     function initTheme() {
       const isDark = localStorage.getItem('territory_portal_theme') === 'dark';
       document.body.classList.toggle('dark-theme', isDark);
@@ -713,6 +730,7 @@
       state.currentFolderId = null; 
       state.currentFileId = null; 
       showScreen('foldersScreen');
+      clearFolderSearch();
     }
 
     function navToFiles(folderId, folderName) {
@@ -720,7 +738,33 @@
       state.currentFolderName = folderName; 
       state.currentFileId = null;
       showScreen('filesScreen'); 
+      clearFileSearch();
       loadFiles(folderId);
+    }
+
+    function onFolderSearchInput(query) {
+      const clearBtn = document.getElementById('folderSearchClearBtn');
+      if (clearBtn) clearBtn.style.display = query ? 'flex' : 'none';
+      filterRenderFolders(query);
+    }
+
+    function clearFolderSearch() {
+      const input = document.getElementById('folderSearchInput');
+      if (input) input.value = '';
+      const clearBtn = document.getElementById('folderSearchClearBtn');
+      if (clearBtn) clearBtn.style.display = 'none';
+      filterRenderFolders('');
+    }
+
+    function filterRenderFolders(query) {
+      const allFolders = sessionCache.subfolders || [];
+      const q = (query || '').trim().toLowerCase();
+      if (!q) {
+        renderFolders(allFolders);
+        return;
+      }
+      const filtered = allFolders.filter(f => f.name.toLowerCase().includes(q));
+      renderFolders(filtered, true);
     }
 
     async function loadFolders() {
@@ -734,9 +778,9 @@
       finally { hideLoader(); }
     }
 
-    function renderFolders(folders) {
+    function renderFolders(folders, isSearching = false) {
       const list = document.getElementById('foldersList');
-      list.innerHTML = folders.length ? '' : `<p style="color:var(--text-sub); padding:12px; grid-column:1/-1;">${t().noFolders}</p>`;
+      list.innerHTML = folders.length ? '' : `<p style="color:var(--text-sub); padding:12px; grid-column:1/-1;">${isSearching ? t().noSearchResults : t().noFolders}</p>`;
       folders.forEach(f => {
         const item = document.createElement('div');
         item.className = 'folder-card';
@@ -746,8 +790,36 @@
       });
     }
 
+    function onFileSearchInput(query) {
+      const clearBtn = document.getElementById('fileSearchClearBtn');
+      if (clearBtn) clearBtn.style.display = query ? 'flex' : 'none';
+      filterRenderFiles(query);
+    }
+
+    function clearFileSearch() {
+      const input = document.getElementById('fileSearchInput');
+      if (input) input.value = '';
+      const clearBtn = document.getElementById('fileSearchClearBtn');
+      if (clearBtn) clearBtn.style.display = 'none';
+      filterRenderFiles('');
+    }
+
+    function filterRenderFiles(query) {
+      const allFiles = sessionCache.folderFiles[state.currentFolderId] || [];
+      const q = (query || '').trim().toLowerCase();
+      if (!q) {
+        renderFiles(allFiles);
+        return;
+      }
+      const filtered = allFiles.filter(f => f.name.toLowerCase().includes(q));
+      renderFiles(filtered, true);
+    }
+
     async function loadFiles(folderId) {
-      if (sessionCache.folderFiles[folderId]) { renderFiles(sessionCache.folderFiles[folderId]); return; }
+      if (sessionCache.folderFiles[folderId]) { 
+        renderFiles(sessionCache.folderFiles[folderId]); 
+        return; 
+      }
       showLoader(t().loadingFiles);
       try {
         const files = await apiRequest("getSpreadsheets", { folderId: folderId });
@@ -757,9 +829,9 @@
       finally { hideLoader(); }
     }
 
-    function renderFiles(files) {
+    function renderFiles(files, isSearching = false) {
       const list = document.getElementById('filesList');
-      list.innerHTML = files.length ? '' : `<p style="color:var(--text-sub); padding:12px; grid-column:1/-1;">${t().noFiles}</p>`;
+      list.innerHTML = files.length ? '' : `<p style="color:var(--text-sub); padding:12px; grid-column:1/-1;">${isSearching ? t().noSearchResults : t().noFiles}</p>`;
       files.forEach(f => {
         const item = document.createElement('div');
         item.className = 'file-card';
@@ -798,7 +870,11 @@
         if (item && item.val && String(item.val).trim() !== '') {
           const parts = String(k).split('-');
           const y = parseInt(item.year || parts[0], 10);
-          const m = parseInt(item.monthNum || parts.slice(-1)[0], 10);
+          
+          // Explicit second array element lookup safely prevents numeric Devanagari offset bugs
+          const mIndex = 1;
+          const m = parseInt(item.monthNum || parts[mIndex] || parts[0], 10);
+          
           validItems.push({ year: y, monthNum: m, val: item.val, score: (y * 100) + m });
         }
       }
@@ -817,7 +893,11 @@
         if (item && item.val && String(item.val).trim() !== '') {
           const parts = String(k).split('-');
           const y = parseInt(item.year || parts[0], 10);
-          const m = parseInt(item.monthNum || parts.slice(-1)[0], 10);
+          
+          // Explicit second array element lookup safely prevents numeric Devanagari offset bugs
+          const mIndex = 1;
+          const m = parseInt(item.monthNum || parts[mIndex] || parts[0], 10);
+          
           validItems.push({ year: y, monthNum: m, val: item.val, score: (y * 100) + m });
         }
       }
@@ -862,11 +942,13 @@
         card.id = `card_${tData.rowIndex}`;
         card.dataset.overdue = overdueInfo.isOverdue ? "true" : "false";
 
-        const noPrefix = tData.no ? `<span class="no-tag">[${escapeHtml(state.lang === 'ne' ? toDevanagariNumerals(tData.no) : tData.no)}]</span>` : '';
+        const noDisplay = state.lang === 'ne' ? toDevanagariNumerals(tData.no) : tData.no;
+        const noPrefix = tData.no ? `<span class="no-tag">[${escapeHtml(noDisplay)}]</span>` : '';
         const targetLabel = `${tData.no ? `[${tData.no}] ` : ''}${tData.address || ''}`;
 
         card.innerHTML = `
           <div class="card-top-row">
+            <!-- Header Address & Correct Vector Shape badge -->
             <div class="card-address">
               ${noPrefix}${escapeHtml(tData.address || '')}
               <span class="card-shape-holder">
