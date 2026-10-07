@@ -5,7 +5,7 @@
   <title>Territory Portal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   
-  <!-- PWA Settings & Apple Touch Icons -->
+  <!-- Web App Branding & Mobile Home Screen Metadata -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1a73e8">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -480,6 +480,15 @@
     function t() { return I18N[state.lang] || I18N.ne; }
 
     window.onload = function() {
+      // Clean up any previously registered service workers to ensure pure non-PWA network routing
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          for (let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+
       initTheme();
       initFontScale();
       initLanguage();
@@ -542,6 +551,7 @@
       location.reload();
     }
 
+    // High-speed API router with backoff retries
     async function apiRequest(action, payload = {}, retries = 3) {
       if (!state.idToken) throw new Error("Authentication required.");
 
@@ -554,7 +564,7 @@
       for (let attempt = 1; attempt <= retries; attempt++) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 12000);
+          const timeoutId = setTimeout(() => controller.abort(), 15000);
 
           const response = await fetch(API_URL, {
             method: "POST",
@@ -571,24 +581,33 @@
           }
 
           const res = await response.json();
+
           if (res.status === "unauthorized") {
             alert(res.message);
             signOutUser();
             throw new Error(res.message);
           }
+
           if (res.status !== "success") {
             throw new Error(res.message || "Request failed");
           }
+
           if (res.user) {
             const badge = document.getElementById('userBadge');
             if (badge) { badge.textContent = res.user; badge.style.display = 'inline'; }
           }
+
           return res.data;
+
         } catch (err) {
-          if (attempt === retries) {
-            throw new Error(err.message || "Network timeout. Please check your signal and reload the page.");
+          console.warn(`API Attempt ${attempt} failed:`, err.message);
+
+          if (attempt < retries) {
+            showToast(`Retrying connection (${attempt}/${retries})...`);
+            await new Promise(r => setTimeout(r, 1200 * attempt));
+          } else {
+            throw new Error("Network connection weak. Please check your signal and try again.");
           }
-          await new Promise(r => setTimeout(r, 1000 * attempt));
         }
       }
     }
@@ -1168,15 +1187,6 @@
 
     function escapeHtml(text) {
       return String(text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-    }
-
-    // Register Service Worker for PWA / Offline Mode
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('PWA Service Worker Registered:', reg.scope))
-          .catch(err => console.error('PWA Service Worker Registration Failed:', err));
-      });
     }
   </script>
 </body>
