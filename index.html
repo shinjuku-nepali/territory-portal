@@ -138,6 +138,37 @@
     .screen { display: none; flex: 1; overflow-y: auto; padding: 12px; -webkit-overflow-scrolling: touch; }
     .screen.active { display: block; }
 
+    /* Global Search Box */
+    .global-search-container {
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .global-search-input {
+      width: 100%;
+      padding: 10px 14px 10px 36px;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--card-bg);
+      color: var(--text-main);
+      outline: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .global-search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+    .search-results-label {
+      font-size: 12px; font-weight: 700; color: var(--text-sub); margin-bottom: 8px; display: block;
+    }
+    .file-card-folder-badge {
+      font-size: 11px; color: var(--primary); font-weight: 600; display: block; margin-top: 2px;
+    }
+
     .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
     .folder-card, .file-card {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
@@ -293,9 +324,22 @@
   <div id="appBody" style="display:none; flex-direction:column; height:100%; overflow:hidden;">
     <div class="breadcrumb" id="breadcrumbBar"></div>
 
-    <!-- Screen 1: Subfolders -->
+    <!-- Screen 1: Subfolders & Search -->
     <div class="screen active" id="foldersScreen">
-      <div class="grid-container" id="foldersList"></div>
+      <!-- Global Search Box -->
+      <div class="global-search-container">
+        <span class="global-search-icon">🔍</span>
+        <input type="text" id="globalSearchInput" class="global-search-input" placeholder="फाइल खोज्नुहोस् / Search all files..." oninput="onGlobalSearchInput(this.value)">
+      </div>
+
+      <div id="searchResultsSection" style="display:none; margin-bottom: 16px;">
+        <span class="search-results-label" id="txtSearchResultsLabel">खोज परिणामहरू / Search Results</span>
+        <div class="grid-container" id="searchResultsList"></div>
+      </div>
+
+      <div id="subfoldersSection">
+        <div class="grid-container" id="foldersList"></div>
+      </div>
     </div>
 
     <!-- Screen 2: Files -->
@@ -366,6 +410,7 @@
         remarksPlaceholder: "यहाँ टिप्पणी लेख्नुहोस्...", saveBtn: "सुरक्षित गर्नुहोस्", emptyRemarksText: "+ टिप्पणी थप्नुहोस्...",
         loginCardPrompt: "कृपया अधिकृत Google खाताबाट लगइन गर्नुहोस्।",
         googleButtonText: "Google मार्फत साइन गर्नुहोस",
+        searchPlaceholder: "सबै फाइलहरू खोज्नुहोस्...", searchResultsTitle: "खोज परिणामहरू", noSearchResults: "कुनै फाइल फेला परेन।",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `के तपाईं यस इलाकाको लागि चिन्ह "<b>${mark === '' ? 'हटाउन' : mark}</b>" राख्न निश्चित हुनुहुन्छ?<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">महिना: ${monthLabel}</small>`,
         monthNames: ["जनवरी", "फेब्रुअरी", "मार्च", "अप्रिल", "मे", "जुन", "जुलाई", "अगस्ट", "सेप्टेम्बर", "अक्टोबर", "नोभेम्बर", "डिसेम्बर"],
         formatMonthDisplay: (year, mNum) => {
@@ -385,6 +430,7 @@
         remarksPlaceholder: "ここに備考を入力...", saveBtn: "保存", emptyRemarksText: "+ 備考を追加...",
         loginCardPrompt: "登録済みのGoogleアカウントでログインしてください。",
         googleButtonText: "Googleでログイン",
+        searchPlaceholder: "全ファイルを検索...", searchResultsTitle: "検索結果", noSearchResults: "該当するファイルがありません。",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `以下の区域の訪問記号を「<b>${mark === '' ? '取消' : mark}</b>」に変更しますか？<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">対象月: ${monthLabel}</small>`,
         monthNames: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
         formatMonthDisplay: (year, mNum) => `${year}年 ${Math.max(1, Math.min(12, parseInt(mNum, 10) || 1))}月`
@@ -401,6 +447,7 @@
         remarksPlaceholder: "Add notes/remarks here...", saveBtn: "Save", emptyRemarksText: "+ Add notes / remarks...",
         loginCardPrompt: "Please sign in with an authorized Google account.",
         googleButtonText: "Sign in with Google",
+        searchPlaceholder: "Search all files across subfolders...", searchResultsTitle: "Search Results", noSearchResults: "No files found.",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `${mark === '' ? 'Clear the mark' : `Set mark to <b>${mark}</b>`} for:<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">Month: ${monthLabel}</small>`,
         monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
         formatMonthDisplay: (year, mNum) => `${year} ${I18N.en.monthNames[Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1]}`
@@ -418,7 +465,7 @@
       currentFolderId: null, currentFolderName: '',
       currentFileId: null, currentFileName: '', currentSheetName: '',
       activeMonthData: null, activeSheetData: null, currentFilter: 'all',
-      fontScale: 1.0, lang: 'ne'
+      fontScale: 1.0, lang: 'ne', searchTimeout: null
     };
 
     function t() { return I18N[state.lang] || I18N.ne; }
@@ -486,7 +533,6 @@
       location.reload();
     }
 
-    // High-speed API router with backoff retries for slow connections
     async function apiRequest(action, payload = {}, retries = 3) {
       if (!state.idToken) throw new Error("Authentication required.");
 
@@ -593,6 +639,10 @@
 
       setSafeText('txtLoginPortalHeader', cur.portalTitle);
       setSafeText('txtLoginPrompt', cur.loginCardPrompt);
+      setSafeText('txtSearchResultsLabel', cur.searchResultsTitle);
+
+      const searchInput = document.getElementById('globalSearchInput');
+      if (searchInput) searchInput.placeholder = cur.searchPlaceholder;
 
       const remInput = document.getElementById('remarksInput');
       if (remInput) remInput.placeholder = cur.remarksPlaceholder;
@@ -686,7 +736,6 @@
       try {
         await apiRequest("updateRemarks", { fileId: state.currentFileId, sheetName: state.currentSheetName, rowIndex: rowIndex, newRemarks: newRemarks });
         
-        // Update LocalStorage Cache
         const cacheKey = `territory_cache_${state.currentFileId}_${state.currentSheetName || 'default'}`;
         if (state.activeSheetData) {
           localStorage.setItem(cacheKey, JSON.stringify(state.activeSheetData));
@@ -733,7 +782,6 @@
     async function loadFolders() {
       const cachedFolders = localStorage.getItem("local_subfolders_cache");
       
-      // 1. Instant load from local storage if available
       if (cachedFolders) {
         sessionCache.subfolders = JSON.parse(cachedFolders);
         renderFolders(sessionCache.subfolders);
@@ -741,7 +789,6 @@
         showLoader(t().loadingFolders);
       }
 
-      // 2. Fetch fresh data in background
       try {
         const folders = await apiRequest("getSubfolders");
         sessionCache.subfolders = folders || [];
@@ -766,12 +813,63 @@
       });
     }
 
+    // --- GLOBAL SEARCH IMPLEMENTATION ---
+    function onGlobalSearchInput(query) {
+      clearTimeout(state.searchTimeout);
+      const cleanQuery = query.trim().toLowerCase();
+      const resultsSection = document.getElementById('searchResultsSection');
+      const subfoldersSection = document.getElementById('subfoldersSection');
+
+      if (!cleanQuery) {
+        resultsSection.style.display = 'none';
+        subfoldersSection.style.display = 'block';
+        return;
+      }
+
+      state.searchTimeout = setTimeout(() => {
+        executeGlobalSearch(cleanQuery);
+      }, 200);
+    }
+
+    async function executeGlobalSearch(cleanQuery) {
+      const resultsSection = document.getElementById('searchResultsSection');
+      const subfoldersSection = document.getElementById('subfoldersSection');
+      const resultsList = document.getElementById('searchResultsList');
+
+      resultsSection.style.display = 'block';
+      subfoldersSection.style.display = 'none';
+
+      try {
+        const matches = await apiRequest("searchAllFiles", { query: cleanQuery });
+        resultsList.innerHTML = matches.length ? '' : `<p style="color:var(--text-sub); padding:12px;">${t().noSearchResults}</p>`;
+        
+        matches.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'file-card';
+          card.innerHTML = `
+            <span class="card-icon">📊</span>
+            <div>
+              <span class="card-name">${escapeHtml(item.name)}</span>
+              <span class="file-card-folder-badge">📁 ${escapeHtml(item.folderName)}</span>
+            </div>
+          `;
+          card.onclick = () => {
+            state.currentFolderId = item.folderId;
+            state.currentFolderName = item.folderName;
+            openTerritoryCards(item.id, item.name);
+          };
+          resultsList.appendChild(card);
+        });
+      } catch (err) {
+        console.error("Search failed:", err);
+      }
+    }
+
     // --- HIGH-SPEED FILE LOADING WITH LOCAL STORAGE ---
     async function loadFiles(folderId) {
       const cacheKey = `local_files_cache_${folderId}`;
       const cachedFiles = localStorage.getItem(cacheKey);
 
-      // 1. Instant load from local storage if available
       if (cachedFiles) {
         sessionCache.folderFiles[folderId] = JSON.parse(cachedFiles);
         renderFiles(sessionCache.folderFiles[folderId]);
@@ -779,7 +877,6 @@
         showLoader(t().loadingFiles);
       }
 
-      // 2. Fetch fresh data in background
       try {
         const files = await apiRequest("getSpreadsheets", { folderId: folderId });
         sessionCache.folderFiles[folderId] = files || [];
@@ -813,7 +910,6 @@
       const cacheKey = `territory_cache_${fileId}_${optSheetName || 'default'}`;
       const localCached = localStorage.getItem(cacheKey);
 
-      // 1. Instant load from browser local storage (<10ms)[cite: 2]
       if (localCached) {
         const parsed = JSON.parse(localCached);
         state.currentSheetName = parsed.activeSheet;
@@ -823,14 +919,12 @@
         showLoader(t().parsingCards);
       }
 
-      // 2. Async background fetch from Google Apps Script[cite: 2]
       try {
         const res = await apiRequest("getTerritoryCards", { fileId: fileId, sheetName: optSheetName });
         state.currentSheetName = res.activeSheet;
         sessionCache.sheetData[`${fileId}_${res.activeSheet}`] = res;
         state.activeSheetData = res;
 
-        // Save fresh data into localStorage
         localStorage.setItem(cacheKey, JSON.stringify(res));
         renderTerritoryCards(res);
       } catch (err) { 
@@ -1054,7 +1148,6 @@
       try {
         await apiRequest("updateCellMark", { fileId: state.currentFileId, sheetName: state.currentSheetName, row: rowIndex, col: colIndex, mark: mark });
         
-        // Update LocalStorage Cache
         const cacheKey = `territory_cache_${state.currentFileId}_${state.currentSheetName || 'default'}`;
         if (state.activeSheetData) {
           localStorage.setItem(cacheKey, JSON.stringify(state.activeSheetData));
