@@ -729,15 +729,29 @@
       loadFiles(folderId);
     }
 
+    // --- HIGH-SPEED FOLDER LOADING WITH LOCAL STORAGE ---
     async function loadFolders() {
-      if (sessionCache.subfolders) { renderFolders(sessionCache.subfolders); return; }
-      showLoader(t().loadingFolders);
+      const cachedFolders = localStorage.getItem("local_subfolders_cache");
+      
+      // 1. Instant load from local storage if available
+      if (cachedFolders) {
+        sessionCache.subfolders = JSON.parse(cachedFolders);
+        renderFolders(sessionCache.subfolders);
+      } else {
+        showLoader(t().loadingFolders);
+      }
+
+      // 2. Fetch fresh data in background
       try {
         const folders = await apiRequest("getSubfolders");
         sessionCache.subfolders = folders || [];
+        localStorage.setItem("local_subfolders_cache", JSON.stringify(sessionCache.subfolders));
         renderFolders(sessionCache.subfolders);
-      } catch (err) { alert(err.message); }
-      finally { hideLoader(); }
+      } catch (err) { 
+        if (!cachedFolders) alert(err.message); 
+      } finally { 
+        hideLoader(); 
+      }
     }
 
     function renderFolders(folders) {
@@ -752,15 +766,30 @@
       });
     }
 
+    // --- HIGH-SPEED FILE LOADING WITH LOCAL STORAGE ---
     async function loadFiles(folderId) {
-      if (sessionCache.folderFiles[folderId]) { renderFiles(sessionCache.folderFiles[folderId]); return; }
-      showLoader(t().loadingFiles);
+      const cacheKey = `local_files_cache_${folderId}`;
+      const cachedFiles = localStorage.getItem(cacheKey);
+
+      // 1. Instant load from local storage if available
+      if (cachedFiles) {
+        sessionCache.folderFiles[folderId] = JSON.parse(cachedFiles);
+        renderFiles(sessionCache.folderFiles[folderId]);
+      } else {
+        showLoader(t().loadingFiles);
+      }
+
+      // 2. Fetch fresh data in background
       try {
         const files = await apiRequest("getSpreadsheets", { folderId: folderId });
         sessionCache.folderFiles[folderId] = files || [];
+        localStorage.setItem(cacheKey, JSON.stringify(sessionCache.folderFiles[folderId]));
         renderFiles(sessionCache.folderFiles[folderId]);
-      } catch (err) { alert(err.message); }
-      finally { hideLoader(); }
+      } catch (err) { 
+        if (!cachedFiles) alert(err.message); 
+      } finally { 
+        hideLoader(); 
+      }
     }
 
     function renderFiles(files) {
@@ -775,7 +804,7 @@
       });
     }
 
-    // --- CARDS & LOCALSTORAGE CACHING (FIX 2) ---
+    // --- CARDS & LOCALSTORAGE CACHING ---
     async function openTerritoryCards(fileId, fileName, optSheetName) {
       state.currentFileId = fileId; 
       state.currentFileName = fileName;
@@ -881,7 +910,6 @@
         const noPrefix = tData.no ? `<span class="no-tag">[${escapeHtml(state.lang === 'ne' ? toDevanagariNumerals(tData.no) : tData.no)}]</span>` : '';
         const targetLabel = `${tData.no ? `[${tData.no}] ` : ''}${tData.address || ''}`;
 
-        // Clean card header: Address and No. only (No unwanted shapes)
         card.innerHTML = `
           <div class="card-top-row">
             <div class="card-address">${noPrefix}${escapeHtml(tData.address || '')}</div>
