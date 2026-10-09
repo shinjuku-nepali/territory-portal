@@ -393,7 +393,7 @@
   <!-- Login Gate Screen -->
   <div id="loginScreen" class="login-container">
     <div class="login-card">
-      <div style="font-size:36px; margin-bottom:12px;">🔒</div>
+  
       <h2 id="txtLoginPortalHeader">इलाका सूची</h2>
       <p id="txtLoginPrompt">कृपया अधिकृत Google खाताबाट लगइन गर्नुहोस्।</p>
       
@@ -487,6 +487,54 @@
     // ==========================================
     const API_URL = "https://script.google.com/macros/s/AKfycbxEPDMp3nbccWAfzEBNZH3kCwm2UgyVQzyAFKrlDZNxzEMyjUlCQ9mX4ROKdN1HWmxf/exec";
     const GOOGLE_CLIENT_ID = "752070145895-49kenu29mj4jfei3di41nahpvkv69ded.apps.googleusercontent.com";
+
+    // ==========================================
+    // INDEXEDDB STORAGE ENGINE (REPLACES 5MB LOCALSTORAGE)
+    // ==========================================
+    const DB_NAME = "TerritoryPortalDB";
+    const DB_STORE = "app_cache";
+
+    function getDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, 1);
+        request.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(DB_STORE)) {
+            db.createObjectStore(DB_STORE);
+          }
+        };
+        request.onsuccess = (e) => resolve(e.target.result);
+        request.onerror = (e) => reject(e.target.error);
+      });
+    }
+
+    async function dbGet(key) {
+      try {
+        const db = await getDB();
+        return new Promise((resolve) => {
+          const tx = db.transaction(DB_STORE, "readonly");
+          const req = tx.objectStore(DB_STORE).get(key);
+          req.onsuccess = () => resolve(req.result ? JSON.parse(req.result) : null);
+          req.onerror = () => resolve(null);
+        });
+      } catch (err) {
+        return null;
+      }
+    }
+
+    async function dbSet(key, value) {
+      try {
+        const db = await getDB();
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(DB_STORE, "readwrite");
+          const req = tx.objectStore(DB_STORE).put(JSON.stringify(value), key);
+          req.onsuccess = () => resolve(true);
+          req.onerror = (e) => reject(e.target.error);
+        });
+      } catch (err) {
+        console.error("IndexedDB Set Error:", err);
+      }
+    }
 
     const I18N = {
       ne: {
@@ -658,7 +706,7 @@
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify(bodyData),
-            keepalive: true, // Guarantees execution if app is closed immediately
+            keepalive: true,
             signal: controller.signal
           });
 
@@ -695,7 +743,7 @@
             showToast(`Retrying connection (${attempt}/${retries})...`);
             await new Promise(r => setTimeout(r, 1200 * attempt));
           } else {
-            throw new Error("Network connection weak. Saved locally to queue.");
+            throw new Error("Network connection weak. Action queued locally.");
           }
         }
       }
@@ -728,31 +776,23 @@
       checkStorageUsage();
     }
 
-    // --- LOCAL STORAGE USAGE METER ---
-    function checkStorageUsage() {
+    // --- LOCAL STORAGE & INDEXEDDB METER ---
+    async function checkStorageUsage() {
       if (navigator.storage && navigator.storage.estimate) {
-        navigator.storage.estimate().then(estimate => {
+        try {
+          const estimate = await navigator.storage.estimate();
           const usedMb = (estimate.usage / (1024 * 1024)).toFixed(2);
           const totalMb = (estimate.quota / (1024 * 1024)).toFixed(0);
           setSafeText('storageMeterVal', `${usedMb} MB / ${totalMb} MB`);
-        }).catch(() => fallbackStorageCheck());
-      } else {
-        fallbackStorageCheck();
-      }
-    }
-
-    function fallbackStorageCheck() {
-      let totalBytes = 0;
-      for (let key in localStorage) {
-        if (localStorage.hasOwnProperty(key)) {
-          totalBytes += ((localStorage[key].length + key.length) * 2);
+        } catch (e) {
+          setSafeText('storageMeterVal', "IndexedDB Active");
         }
+      } else {
+        setSafeText('storageMeterVal', "IndexedDB Active");
       }
-      const usedMb = (totalBytes / (1024 * 1024)).toFixed(2);
-      setSafeText('storageMeterVal', `~${usedMb} MB used`);
     }
 
-    // --- SEQUENTIAL CHUNKED OFFLINE DOWNLOADER ---
+    // --- SEQUENTIAL CHUNKED INDEXEDDB OFFLINE DOWNLOADER ---
     async function downloadAllFilesOffline() {
       const btn = document.getElementById('btnDownloadAll');
       btn.disabled = true;
@@ -760,31 +800,34 @@
 
       try {
         const folders = await apiRequest("getSubfolders");
-        localStorage.setItem("local_subfolders_cache", JSON.stringify(folders));
+        await dbSet("local_subfolders_cache", folders);
 
-        let totalFiles = 0;
         let downloadedCount = 0;
         const allFilesToFetch = [];
 
         for (const folder of folders) {
           const files = await apiRequest("getSpreadsheets", { folderId: folder.id });
-          localStorage.setItem(`local_files_cache_${folder.id}`, JSON.stringify(files));
+          await dbSet(`local_files_cache_${folder.id}`, files);
           files.forEach(f => allFilesToFetch.push({ fileId: f.id, fileName: f.name }));
         }
 
-        totalFiles = allFilesToFetch.length;
+        const totalFiles = allFilesToFetch.length;
 
         for (const file of allFilesToFetch) {
           downloadedCount++;
           btn.textContent = `📥 Downloading (${downloadedCount}/${totalFiles})...`;
-          const res = await apiRequest("getTerritoryCards", { fileId: file.fileId });
-          const cacheKey = `territory_cache_${file.fileId}_${res.activeSheet || 'default'}`;
-          localStorage.setItem(cacheKey, JSON.stringify(res));
+          try {
+            const res = await apiRequest("getTerritoryCards", { fileId: file.fileId });
+            const cacheKey = `territory_cache_${file.fileId}_${res.activeSheet || 'default'}`;
+            await dbSet(cacheKey, res);
+          } catch (e) {
+            console.warn(`Failed downloading ${file.fileName}:`, e);
+          }
         }
 
         btn.textContent = "✓ All Files Offline Ready";
         btn.style.background = "#188038";
-        showToast("✓ All spreadsheets cached locally for offline use.");
+        showToast("✓ All spreadsheets cached locally in IndexedDB.");
         checkStorageUsage();
       } catch (err) {
         alert("Download error: " + err.message);
@@ -973,7 +1016,7 @@
 
       const cacheKey = `territory_cache_${state.currentFileId}_${state.currentSheetName || 'default'}`;
       if (state.activeSheetData) {
-        localStorage.setItem(cacheKey, JSON.stringify(state.activeSheetData));
+        await dbSet(cacheKey, state.activeSheetData);
       }
 
       enqueueSyncAction("updateRemarks", {
@@ -1020,12 +1063,11 @@
       loadFiles(folderId);
     }
 
-    // --- HIGH-SPEED FOLDER LOADING WITH LOCAL STORAGE ---
     async function loadFolders() {
-      const cachedFolders = localStorage.getItem("local_subfolders_cache");
+      const cachedFolders = await dbGet("local_subfolders_cache");
       
       if (cachedFolders) {
-        sessionCache.subfolders = JSON.parse(cachedFolders);
+        sessionCache.subfolders = cachedFolders;
         renderFolders(sessionCache.subfolders);
       } else {
         showLoader(t().loadingFolders);
@@ -1034,7 +1076,7 @@
       try {
         const folders = await apiRequest("getSubfolders");
         sessionCache.subfolders = folders || [];
-        localStorage.setItem("local_subfolders_cache", JSON.stringify(sessionCache.subfolders));
+        await dbSet("local_subfolders_cache", sessionCache.subfolders);
         renderFolders(sessionCache.subfolders);
       } catch (err) { 
         if (!cachedFolders) alert(err.message); 
@@ -1055,7 +1097,6 @@
       });
     }
 
-    // --- GLOBAL SEARCH IMPLEMENTATION WITH CLEAR BUTTON ---
     function onGlobalSearchInput(query) {
       clearTimeout(state.searchTimeout);
       const cleanQuery = query.trim().toLowerCase();
@@ -1121,13 +1162,12 @@
       }
     }
 
-    // --- HIGH-SPEED FILE LOADING WITH LOCAL STORAGE ---
     async function loadFiles(folderId) {
       const cacheKey = `local_files_cache_${folderId}`;
-      const cachedFiles = localStorage.getItem(cacheKey);
+      const cachedFiles = await dbGet(cacheKey);
 
       if (cachedFiles) {
-        sessionCache.folderFiles[folderId] = JSON.parse(cachedFiles);
+        sessionCache.folderFiles[folderId] = cachedFiles;
         renderFiles(sessionCache.folderFiles[folderId]);
       } else {
         showLoader(t().loadingFiles);
@@ -1136,7 +1176,7 @@
       try {
         const files = await apiRequest("getSpreadsheets", { folderId: folderId });
         sessionCache.folderFiles[folderId] = files || [];
-        localStorage.setItem(cacheKey, JSON.stringify(sessionCache.folderFiles[folderId]));
+        await dbSet(cacheKey, sessionCache.folderFiles[folderId]);
         renderFiles(sessionCache.folderFiles[folderId]);
       } catch (err) { 
         if (!cachedFiles) alert(err.message); 
@@ -1157,26 +1197,24 @@
       });
     }
 
-    // --- STALE-WHILE-REVALIDATE CARD OPENING ---
+    // --- STALE-WHILE-REVALIDATE INDEXEDDB CARD OPENING ---
     async function openTerritoryCards(fileId, fileName, optSheetName) {
       state.currentFileId = fileId; 
       state.currentFileName = fileName;
       showScreen('cardsScreen');
 
       const cacheKey = `territory_cache_${fileId}_${optSheetName || 'default'}`;
-      const localCached = localStorage.getItem(cacheKey);
+      const localCached = await dbGet(cacheKey);
 
       if (localCached) {
-        // 0ms Load from Local Storage First!
-        const parsed = JSON.parse(localCached);
-        state.currentSheetName = parsed.activeSheet;
-        state.activeSheetData = parsed;
-        renderTerritoryCards(parsed);
+        // Instant 0ms Load from IndexedDB
+        state.currentSheetName = localCached.activeSheet;
+        state.activeSheetData = localCached;
+        renderTerritoryCards(localCached);
 
-        // Background Check: Verify if Google Sheet has newer data
-        checkBackgroundDataVersion(fileId, parsed.lastUpdated, optSheetName);
+        // Background Check for updates
+        checkBackgroundDataVersion(fileId, localCached.lastUpdated, optSheetName);
       } else {
-        // First Time Download for this sheet
         showLoader(t().parsingCards);
         await syncCurrentSheetData(optSheetName);
         hideLoader();
@@ -1186,12 +1224,11 @@
     async function checkBackgroundDataVersion(fileId, localLastUpdated, optSheetName) {
       try {
         const versionInfo = await apiRequest("checkDataVersion", { fileId: fileId });
-        if (versionInfo && versionInfo.lastUpdated && versionInfo.lastUpdated > (localLastUpdated || 0)) {
-          // External modifications detected in Google Sheets -> Show Banner!
+        if (versionInfo && versionInfo.lastUpdated && (versionInfo.lastUpdated - (localLastUpdated || 0)) > 2000) {
           document.getElementById('updateAvailableBanner').style.display = 'flex';
         }
       } catch (err) {
-        console.warn("Background version check skipped (offline or weak signal)");
+        console.warn("Background version check skipped");
       }
     }
 
@@ -1205,7 +1242,7 @@
         state.activeSheetData = res;
 
         const cacheKey = `territory_cache_${state.currentFileId}_${res.activeSheet || 'default'}`;
-        localStorage.setItem(cacheKey, JSON.stringify(res));
+        await dbSet(cacheKey, res);
 
         renderTerritoryCards(res);
         showToast(t().saved);
@@ -1285,7 +1322,6 @@
         const noPrefix = tData.no ? `<span class="no-tag">[${escapeHtml(state.lang === 'ne' ? toDevanagariNumerals(tData.no) : tData.no)}]</span>` : '';
         const targetLabel = `${tData.no ? `[${tData.no}] ` : ''}${tData.address || ''}`;
 
-        // Address Column E Red Cell Fill UI elements
         const addressClass = tData.isRedHighlighted ? 'card-address is-red-highlighted' : 'card-address';
         const redBadge = tData.isRedHighlighted ? `<span class="red-flag-badge">${t().redCellBadge}</span>` : '';
 
@@ -1298,7 +1334,6 @@
           </div>
           <div class="card-meta">${escapeHtml([tData.city, tData.cong].filter(Boolean).join(' ・ '))}</div>
           
-          <!-- Column E Red Fill Toggle Button -->
           <div style="margin: 6px 0;">
             <button type="button" class="red-flag-btn ${tData.isRedHighlighted ? 'active' : ''}" 
                     onclick="toggleRedHighlight(${tData.rowIndex}, ${!tData.isRedHighlighted})">
@@ -1351,7 +1386,7 @@
 
       const cacheKey = `territory_cache_${state.currentFileId}_${state.currentSheetName || 'default'}`;
       if (state.activeSheetData) {
-        localStorage.setItem(cacheKey, JSON.stringify(state.activeSheetData));
+        await dbSet(cacheKey, state.activeSheetData);
       }
 
       enqueueSyncAction("toggleRedHighlight", {
@@ -1467,7 +1502,7 @@
 
       const cacheKey = `territory_cache_${state.currentFileId}_${state.currentSheetName || 'default'}`;
       if (state.activeSheetData) {
-        localStorage.setItem(cacheKey, JSON.stringify(state.activeSheetData));
+        await dbSet(cacheKey, state.activeSheetData);
       }
 
       enqueueSyncAction("updateCellMark", {
