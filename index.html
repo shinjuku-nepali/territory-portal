@@ -110,7 +110,23 @@
     }
     .header-title { font-size: calc(18px * var(--font-scale)); font-weight: 800; display: flex; align-items: center; gap: 8px; }
     .header-actions { display: flex; align-items: center; gap: 10px; }
-    
+
+    /* Stale-While-Revalidate Update Banner */
+    .update-banner {
+      display: none;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      color: #ffffff;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      z-index: 15;
+      cursor: pointer;
+    }
+    .update-banner span { display: flex; align-items: center; gap: 6px; }
+
     .settings-container { position: relative; }
     .settings-btn {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: 50%;
@@ -121,7 +137,7 @@
     .settings-dropdown {
       display: none; position: absolute; top: 48px; right: 0; background: var(--card-bg);
       border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      width: 280px; padding: 16px; z-index: 9999;
+      width: 290px; padding: 16px; z-index: 9999;
       backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
     }
     body.theme-3d .settings-dropdown { background: #1e1b3a; }
@@ -130,6 +146,12 @@
     .settings-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
     .settings-item-col { display: flex; flex-direction: column; gap: 6px; padding: 8px 0 4px 0; border-top: 1px solid var(--border); margin-top: 4px; }
     .settings-label { font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+
+    .storage-meter-box {
+      font-size: 11.5px; color: var(--text-sub); background: var(--btn-bg);
+      padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border);
+      margin-top: 4px; display: flex; justify-content: space-between; align-items: center;
+    }
 
     .segmented-group { display: flex; gap: 4px; background: var(--btn-bg); border: 1px solid var(--border); border-radius: 20px; padding: 3px; width: 100%; }
     .segmented-btn { flex: 1; padding: 6px 0; border: none; background: transparent; color: var(--text-sub); font-size: 12px; font-weight: 700; border-radius: 16px; cursor: pointer; text-align: center; font-family: inherit; transition: all 0.2s; }
@@ -166,80 +188,34 @@
     .login-card h2 { margin: 0 0 10px 0; font-size: 22px; color: var(--text-main); font-weight: 800; }
     .login-card p { font-size: 14px; color: var(--text-sub); margin: 0 0 24px 0; line-height: 1.5; }
     
-    .google-btn-wrapper {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      margin-top: 4px;
-    }
+    .google-btn-wrapper { width: 100%; display: flex; justify-content: center; margin-top: 4px; }
 
-    /* App Views */
     .breadcrumb {
       display: flex; align-items: center; gap: 6px; font-size: calc(13px * var(--font-scale)); color: var(--text-sub);
       overflow-x: auto; white-space: nowrap; padding: 8px 16px; background: var(--card-bg);
-      border-bottom: 1px solid var(--border); flex-shrink: 0;
-      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border); flex-shrink: 0; backdrop-filter: blur(10px);
     }
     .breadcrumb-item { cursor: pointer; color: var(--primary); font-weight: 600; }
     .screen { display: none; flex: 1; overflow-y: auto; padding: 14px; -webkit-overflow-scrolling: touch; }
     .screen.active { display: block; }
 
-    /* Global Search Box with Dynamic Clear Button */
-    .global-search-container {
-      margin-bottom: 14px;
-      position: relative;
-    }
+    .global-search-container { margin-bottom: 14px; position: relative; }
     .global-search-input {
-      width: 100%;
-      padding: 12px 38px 12px 40px;
-      font-size: var(--font-search-input);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      background: var(--card-bg);
-      color: var(--text-main);
-      outline: none;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      backdrop-filter: blur(10px);
+      width: 100%; padding: 12px 38px 12px 40px; font-size: var(--font-search-input);
+      border: 1px solid var(--border); border-radius: 20px; background: var(--card-bg);
+      color: var(--text-main); outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08); backdrop-filter: blur(10px);
     }
-    .global-search-icon {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: var(--font-search-input);
-      color: var(--text-sub);
-    }
+    .global-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: var(--font-search-input); color: var(--text-sub); }
     .search-clear-btn {
-      display: none;
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: var(--btn-bg);
-      border: 1px solid var(--border);
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      font-size: 12px;
-      font-weight: 800;
-      color: var(--text-sub);
-      cursor: pointer;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-      padding: 0;
+      display: none; position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: var(--btn-bg); border: 1px solid var(--border); border-radius: 50%;
+      width: 24px; height: 24px; font-size: 12px; font-weight: 800; color: var(--text-sub);
+      cursor: pointer; align-items: center; justify-content: center; line-height: 1; padding: 0;
     }
-    .search-clear-btn.visible {
-      display: flex;
-    }
-    .search-results-label {
-      font-size: calc(12px * var(--font-scale)); font-weight: 800; color: var(--text-sub); margin-bottom: 8px; display: block;
-    }
-    .file-card-folder-badge {
-      font-size: calc(11px * var(--font-scale)); color: var(--primary); font-weight: 600; display: block; margin-top: 2px;
-    }
+    .search-clear-btn.visible { display: flex; }
+    .search-results-label { font-size: calc(12px * var(--font-scale)); font-weight: 800; color: var(--text-sub); margin-bottom: 8px; display: block; }
+    .file-card-folder-badge { font-size: calc(11px * var(--font-scale)); color: var(--primary); font-weight: 600; display: block; margin-top: 2px; }
 
-    /* Scalable Folders & Files Layout */
     .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
     .folder-card, .file-card {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px;
@@ -261,84 +237,34 @@
     body:not(.theme-3d) .filter-pill.active { background: var(--text-main); color: var(--bg); }
     .filter-pill.overdue-pill.active { background: var(--overdue-red); color: #ffffff; border-color: var(--overdue-red); }
 
-    /* Modern 3D Glass Territory Card */
     .territory-card {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px;
       padding: 18px; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
       backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
       transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
     }
-    .territory-card.is-overdue {
-      border: 1.5px solid var(--overdue-border);
-      background-color: var(--overdue-bg);
-    }
+    .territory-card.is-overdue { border: 1.5px solid var(--overdue-border); background-color: var(--overdue-bg); }
     .card-top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
     .card-address { font-size: var(--font-address); font-weight: 800; color: var(--text-main); line-height: 1.35; flex: 1; letter-spacing: -0.2px; }
     .no-tag { color: var(--primary); margin-right: 6px; font-weight: 800; }
 
-    /* Red Column E Cell Highlight Styling */
     .card-address.is-red-highlighted {
-      background-color: rgba(239, 68, 68, 0.25);
-      color: #f87171;
-      padding: 6px 10px;
-      border-radius: 12px;
-      border-left: 4px solid #ef4444;
-      display: inline-block;
+      background-color: rgba(239, 68, 68, 0.25); color: #f87171; padding: 6px 10px;
+      border-radius: 12px; border-left: 4px solid #ef4444; display: inline-block;
     }
-    body:not(.theme-3d) .card-address.is-red-highlighted {
-      background-color: #fce8e6;
-      color: #c5221f;
-      border-left: 4px solid #d93025;
-    }
-    body.dark-theme:not(.theme-3d) .card-address.is-red-highlighted {
-      background-color: #3c1e1e;
-      color: #f28b82;
-      border-left: 4px solid #f28b82;
-    }
-    .red-flag-badge {
-      background: #ef4444;
-      color: #ffffff;
-      font-size: calc(11px * var(--font-scale));
-      font-weight: 800;
-      padding: 3px 8px;
-      border-radius: 12px;
-      margin-left: 6px;
-      display: inline-block;
-      vertical-align: middle;
-    }
-    .red-flag-btn {
-      padding: 5px 12px;
-      border-radius: 16px;
-      font-size: calc(12px * var(--font-scale));
-      font-weight: 700;
-      border: 1px solid var(--border);
-      background: var(--btn-bg);
-      color: var(--text-sub);
-      cursor: pointer;
-    }
-    .red-flag-btn.active {
-      background: rgba(239, 68, 68, 0.3);
-      color: #f87171;
-      border-color: rgba(239, 68, 68, 0.6);
-      font-weight: 800;
-    }
+    body:not(.theme-3d) .card-address.is-red-highlighted { background-color: #fce8e6; color: #c5221f; border-left: 4px solid #d93025; }
+    body.dark-theme:not(.theme-3d) .card-address.is-red-highlighted { background-color: #3c1e1e; color: #f28b82; border-left: 4px solid #f28b82; }
+    
+    .red-flag-badge { background: #ef4444; color: #ffffff; font-size: calc(11px * var(--font-scale)); font-weight: 800; padding: 3px 8px; border-radius: 12px; margin-left: 6px; display: inline-block; vertical-align: middle; }
+    .red-flag-btn { padding: 5px 12px; border-radius: 16px; font-size: calc(12px * var(--font-scale)); font-weight: 700; border: 1px solid var(--border); background: var(--btn-bg); color: var(--text-sub); cursor: pointer; }
+    .red-flag-btn.active { background: rgba(239, 68, 68, 0.3); color: #f87171; border-color: rgba(239, 68, 68, 0.6); font-weight: 800; }
 
-    /* Pill Badges */
-    .overdue-badge {
-      display: none; background: #ffffff; color: #1e1b3a;
-      font-size: calc(12px * var(--font-scale)); font-weight: 800; padding: 4px 12px; border-radius: 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    body:not(.theme-3d) .overdue-badge {
-      background: var(--overdue-badge-bg); color: var(--overdue-red);
-    }
+    .overdue-badge { display: none; background: #ffffff; color: #1e1b3a; font-size: calc(12px * var(--font-scale)); font-weight: 800; padding: 4px 12px; border-radius: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    body:not(.theme-3d) .overdue-badge { background: var(--overdue-badge-bg); color: var(--overdue-red); }
     .territory-card.is-overdue .overdue-badge { display: inline-flex; }
     .card-meta { font-size: var(--font-meta); color: var(--text-sub); margin-bottom: 6px; font-weight: 500; }
 
-    .card-remarks-box {
-      display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 10px 0;
-      cursor: pointer; background: var(--btn-bg); padding: 8px 12px; border-radius: 14px; border: 1px dashed var(--border);
-    }
+    .card-remarks-box { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 10px 0; cursor: pointer; background: var(--btn-bg); padding: 8px 12px; border-radius: 14px; border: 1px dashed var(--border); }
     .card-remarks-text { font-size: var(--font-meta); font-style: italic; color: var(--text-main); word-break: break-word; flex: 1; }
     .card-remarks-text.empty { color: var(--text-muted); font-style: normal; }
 
@@ -438,6 +364,18 @@
             </div>
           </div>
 
+          <!-- Offline Download & Storage Meter -->
+          <div class="settings-item-col">
+            <span class="settings-label"><span>📥</span> <span>Download All for Offline</span></span>
+            <button type="button" id="btnDownloadAll" class="segmented-btn" style="background:var(--primary); color:#ffffff; padding:8px 0;" onclick="downloadAllFilesOffline()">
+              Download All Spreadsheets
+            </button>
+            <div class="storage-meter-box" id="storageMeterDisplay">
+              <span>💾 Local Storage:</span>
+              <span id="storageMeterVal">Calculating...</span>
+            </div>
+          </div>
+
           <div class="settings-item" style="border-top:1px solid var(--border); padding-top:10px; margin-top:4px;">
             <button type="button" class="segmented-btn" onclick="signOutUser()" style="color:#f87171;">Sign Out</button>
           </div>
@@ -445,6 +383,12 @@
       </div>
     </div>
   </header>
+
+  <!-- Stale-While-Revalidate Sync Banner -->
+  <div id="updateAvailableBanner" class="update-banner" onclick="syncCurrentSheetData()">
+    <span>🔄 New updates available in Google Sheets</span>
+    <span style="background:rgba(255,255,255,0.25); padding:3px 8px; border-radius:10px;">[ Sync Now ]</span>
+  </div>
 
   <!-- Login Gate Screen -->
   <div id="loginScreen" class="login-container">
@@ -622,18 +566,20 @@
     function t() { return I18N[state.lang] || I18N.ne; }
 
     window.onload = function() {
-      // Clean up any previously registered service workers
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(registrations => {
-          for (let registration of registrations) {
-            registration.unregister();
-          }
+          for (let registration of registrations) { registration.unregister(); }
         });
       }
 
       initTheme();
       initFontScale();
       initLanguage();
+      checkStorageUsage();
+
+      // Listen for online events to flush any pending offline mutations
+      window.addEventListener('online', flushPendingSyncQueue);
+      flushPendingSyncQueue();
       
       const now = new Date();
       state.activeMonthData = { year: String(now.getFullYear()), monthNum: now.getMonth() + 1 };
@@ -693,7 +639,7 @@
       location.reload();
     }
 
-    // High-speed API router with backoff retries
+    // High-speed API router with keepalive flag for rapid app close protection
     async function apiRequest(action, payload = {}, retries = 3) {
       if (!state.idToken) throw new Error("Authentication required.");
 
@@ -712,6 +658,7 @@
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify(bodyData),
+            keepalive: true, // Guarantees execution if app is closed immediately
             signal: controller.signal
           });
 
@@ -748,9 +695,102 @@
             showToast(`Retrying connection (${attempt}/${retries})...`);
             await new Promise(r => setTimeout(r, 1200 * attempt));
           } else {
-            throw new Error("Network connection weak. Please check your signal and try again.");
+            throw new Error("Network connection weak. Saved locally to queue.");
           }
         }
+      }
+    }
+
+    // --- PENDING OFFLINE QUEUE MANAGER ---
+    function enqueueSyncAction(action, payload) {
+      const queue = JSON.parse(localStorage.getItem('pending_sync_queue') || '[]');
+      queue.push({ id: Date.now(), action: action, payload: payload });
+      localStorage.setItem('pending_sync_queue', JSON.stringify(queue));
+      flushPendingSyncQueue();
+    }
+
+    async function flushPendingSyncQueue() {
+      if (!navigator.onLine) return;
+      const raw = localStorage.getItem('pending_sync_queue');
+      if (!raw) return;
+      const queue = JSON.parse(raw);
+      if (!queue.length) return;
+
+      const remaining = [];
+      for (const item of queue) {
+        try {
+          await apiRequest(item.action, item.payload);
+        } catch (err) {
+          remaining.push(item);
+        }
+      }
+      localStorage.setItem('pending_sync_queue', JSON.stringify(remaining));
+      checkStorageUsage();
+    }
+
+    // --- LOCAL STORAGE USAGE METER ---
+    function checkStorageUsage() {
+      if (navigator.storage && navigator.storage.estimate) {
+        navigator.storage.estimate().then(estimate => {
+          const usedMb = (estimate.usage / (1024 * 1024)).toFixed(2);
+          const totalMb = (estimate.quota / (1024 * 1024)).toFixed(0);
+          setSafeText('storageMeterVal', `${usedMb} MB / ${totalMb} MB`);
+        }).catch(() => fallbackStorageCheck());
+      } else {
+        fallbackStorageCheck();
+      }
+    }
+
+    function fallbackStorageCheck() {
+      let totalBytes = 0;
+      for (let key in localStorage) {
+        if (localStorage.hasOwnProperty(key)) {
+          totalBytes += ((localStorage[key].length + key.length) * 2);
+        }
+      }
+      const usedMb = (totalBytes / (1024 * 1024)).toFixed(2);
+      setSafeText('storageMeterVal', `~${usedMb} MB used`);
+    }
+
+    // --- SEQUENTIAL CHUNKED OFFLINE DOWNLOADER ---
+    async function downloadAllFilesOffline() {
+      const btn = document.getElementById('btnDownloadAll');
+      btn.disabled = true;
+      btn.textContent = "⏳ Fetching File Tree...";
+
+      try {
+        const folders = await apiRequest("getSubfolders");
+        localStorage.setItem("local_subfolders_cache", JSON.stringify(folders));
+
+        let totalFiles = 0;
+        let downloadedCount = 0;
+        const allFilesToFetch = [];
+
+        for (const folder of folders) {
+          const files = await apiRequest("getSpreadsheets", { folderId: folder.id });
+          localStorage.setItem(`local_files_cache_${folder.id}`, JSON.stringify(files));
+          files.forEach(f => allFilesToFetch.push({ fileId: f.id, fileName: f.name }));
+        }
+
+        totalFiles = allFilesToFetch.length;
+
+        for (const file of allFilesToFetch) {
+          downloadedCount++;
+          btn.textContent = `📥 Downloading (${downloadedCount}/${totalFiles})...`;
+          const res = await apiRequest("getTerritoryCards", { fileId: file.fileId });
+          const cacheKey = `territory_cache_${file.fileId}_${res.activeSheet || 'default'}`;
+          localStorage.setItem(cacheKey, JSON.stringify(res));
+        }
+
+        btn.textContent = "✓ All Files Offline Ready";
+        btn.style.background = "#188038";
+        showToast("✓ All spreadsheets cached locally for offline use.");
+        checkStorageUsage();
+      } catch (err) {
+        alert("Download error: " + err.message);
+        btn.textContent = "Download All Spreadsheets";
+      } finally {
+        btn.disabled = false;
       }
     }
 
@@ -859,6 +899,7 @@
     function toggleSettingsDropdown(e) {
       if (e) e.stopPropagation();
       document.getElementById('settingsDropdown')?.classList.toggle('open');
+      checkStorageUsage();
     }
 
     document.addEventListener('click', (e) => {
@@ -929,21 +970,26 @@
           textEl.classList.toggle('empty', !newRemarks);
         }
       }
-      try {
-        await apiRequest("updateRemarks", { fileId: state.currentFileId, sheetName: state.currentSheetName, rowIndex: rowIndex, newRemarks: newRemarks });
-        
-        const cacheKey = `territory_cache_${state.currentFileId}_${state.currentSheetName || 'default'}`;
-        if (state.activeSheetData) {
-          localStorage.setItem(cacheKey, JSON.stringify(state.activeSheetData));
-        }
 
-        showToast(t().saved);
-      } catch (err) { alert(err.message); }
+      const cacheKey = `territory_cache_${state.currentFileId}_${state.currentSheetName || 'default'}`;
+      if (state.activeSheetData) {
+        localStorage.setItem(cacheKey, JSON.stringify(state.activeSheetData));
+      }
+
+      enqueueSyncAction("updateRemarks", {
+        fileId: state.currentFileId,
+        sheetName: state.currentSheetName,
+        rowIndex: rowIndex,
+        newRemarks: newRemarks
+      });
+
+      showToast(t().saved);
     }
 
     function showScreen(screenId) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(screenId)?.classList.add('active');
+      document.getElementById('updateAvailableBanner').style.display = 'none';
       updateBreadcrumbs();
     }
 
@@ -1111,7 +1157,7 @@
       });
     }
 
-    // --- CARDS & LOCALSTORAGE CACHING ---
+    // --- STALE-WHILE-REVALIDATE CARD OPENING ---
     async function openTerritoryCards(fileId, fileName, optSheetName) {
       state.currentFileId = fileId; 
       state.currentFileName = fileName;
@@ -1121,26 +1167,51 @@
       const localCached = localStorage.getItem(cacheKey);
 
       if (localCached) {
+        // 0ms Load from Local Storage First!
         const parsed = JSON.parse(localCached);
         state.currentSheetName = parsed.activeSheet;
         state.activeSheetData = parsed;
         renderTerritoryCards(parsed);
+
+        // Background Check: Verify if Google Sheet has newer data
+        checkBackgroundDataVersion(fileId, parsed.lastUpdated, optSheetName);
       } else {
+        // First Time Download for this sheet
         showLoader(t().parsingCards);
+        await syncCurrentSheetData(optSheetName);
+        hideLoader();
       }
+    }
+
+    async function checkBackgroundDataVersion(fileId, localLastUpdated, optSheetName) {
+      try {
+        const versionInfo = await apiRequest("checkDataVersion", { fileId: fileId });
+        if (versionInfo && versionInfo.lastUpdated && versionInfo.lastUpdated > (localLastUpdated || 0)) {
+          // External modifications detected in Google Sheets -> Show Banner!
+          document.getElementById('updateAvailableBanner').style.display = 'flex';
+        }
+      } catch (err) {
+        console.warn("Background version check skipped (offline or weak signal)");
+      }
+    }
+
+    async function syncCurrentSheetData(optSheetName) {
+      document.getElementById('updateAvailableBanner').style.display = 'none';
+      showToast(t().saving);
 
       try {
-        const res = await apiRequest("getTerritoryCards", { fileId: fileId, sheetName: optSheetName });
+        const res = await apiRequest("getTerritoryCards", { fileId: state.currentFileId, sheetName: optSheetName || state.currentSheetName });
         state.currentSheetName = res.activeSheet;
-        sessionCache.sheetData[`${fileId}_${res.activeSheet}`] = res;
         state.activeSheetData = res;
 
+        const cacheKey = `territory_cache_${state.currentFileId}_${res.activeSheet || 'default'}`;
         localStorage.setItem(cacheKey, JSON.stringify(res));
+
         renderTerritoryCards(res);
-      } catch (err) { 
-        if (!localCached) alert(err.message); 
-      } finally { 
-        hideLoader(); 
+        showToast(t().saved);
+        checkStorageUsage();
+      } catch (err) {
+        alert(err.message);
       }
     }
 
@@ -1272,31 +1343,25 @@
     async function toggleRedHighlight(rowIndex, setRed) {
       showToast(t().saving);
       
-      // Optimistic UI update
       const territory = state.activeSheetData.territories.find(t => t.rowIndex === rowIndex);
       if (territory) {
         territory.isRedHighlighted = setRed;
         renderTerritoryCards(state.activeSheetData);
       }
 
-      try {
-        await apiRequest("toggleRedHighlight", {
-          fileId: state.currentFileId,
-          sheetName: state.currentSheetName,
-          row: rowIndex,
-          enableHighlight: setRed
-        });
-
-        // Update local storage cache
-        const cacheKey = `territory_cache_${state.currentFileId}_${state.currentSheetName || 'default'}`;
-        if (state.activeSheetData) {
-          localStorage.setItem(cacheKey, JSON.stringify(state.activeSheetData));
-        }
-
-        showToast(t().saved);
-      } catch (err) {
-        alert(err.message);
+      const cacheKey = `territory_cache_${state.currentFileId}_${state.currentSheetName || 'default'}`;
+      if (state.activeSheetData) {
+        localStorage.setItem(cacheKey, JSON.stringify(state.activeSheetData));
       }
+
+      enqueueSyncAction("toggleRedHighlight", {
+        fileId: state.currentFileId,
+        sheetName: state.currentSheetName,
+        row: rowIndex,
+        enableHighlight: setRed
+      });
+
+      showToast(t().saved);
     }
 
     function setTerritoryFilter(type) {
@@ -1400,16 +1465,20 @@
         }
       }
 
-      try {
-        await apiRequest("updateCellMark", { fileId: state.currentFileId, sheetName: state.currentSheetName, row: rowIndex, col: colIndex, mark: mark });
-        
-        const cacheKey = `territory_cache_${state.currentFileId}_${state.currentSheetName || 'default'}`;
-        if (state.activeSheetData) {
-          localStorage.setItem(cacheKey, JSON.stringify(state.activeSheetData));
-        }
+      const cacheKey = `territory_cache_${state.currentFileId}_${state.currentSheetName || 'default'}`;
+      if (state.activeSheetData) {
+        localStorage.setItem(cacheKey, JSON.stringify(state.activeSheetData));
+      }
 
-        showToast(t().saved);
-      } catch (err) { alert(err.message); }
+      enqueueSyncAction("updateCellMark", {
+        fileId: state.currentFileId,
+        sheetName: state.currentSheetName,
+        row: rowIndex,
+        col: colIndex,
+        mark: mark
+      });
+
+      showToast(t().saved);
     }
 
     function escapeHtml(text) {
