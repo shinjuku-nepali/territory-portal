@@ -205,6 +205,48 @@
     .card-address { font-size: var(--font-address); font-weight: 700; color: var(--text-main); line-height: 1.35; flex: 1; }
     .no-tag { color: var(--primary); margin-right: 4px; font-weight: 800; }
 
+    /* Red Column E Cell Highlight Styling */
+    .card-address.is-red-highlighted {
+      background-color: #fce8e6;
+      color: #c5221f;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border-left: 4px solid #d93025;
+      display: inline-block;
+    }
+    body.dark-theme .card-address.is-red-highlighted {
+      background-color: #3c1e1e;
+      color: #f28b82;
+      border-left: 4px solid #f28b82;
+    }
+    .red-flag-badge {
+      background: #d93025;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 10px;
+      margin-left: 6px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .red-flag-btn {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: var(--btn-bg);
+      color: var(--text-sub);
+      cursor: pointer;
+    }
+    .red-flag-btn.active {
+      background: #fce8e6;
+      color: #d93025;
+      border-color: #f7c8c4;
+      font-weight: 700;
+    }
+
     .overdue-badge { display: none; background: var(--overdue-badge-bg); color: var(--overdue-red); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 10px; }
     .territory-card.is-overdue .overdue-badge { display: inline-flex; }
     .card-meta { font-size: var(--font-meta); color: var(--text-sub); margin-bottom: 2px; }
@@ -420,6 +462,7 @@
         loginCardPrompt: "कृपया अधिकृत Google खाताबाट लगइन गर्नुहोस्।",
         googleButtonText: "Google मार्फत साइन गर्नुहोस",
         searchPlaceholder: "सबै फाइलहरू खोज्नुहोस्...", searchResultsTitle: "खोज परिणामहरू", noSearchResults: "कुनै फाइल फेला परेन।",
+        redCellFlagBtn: "🚩 रातो रङ लगाउनुहोस्", clearRedCellFlagBtn: "🚩 रातो रङ हटाउनुहोस्", redCellBadge: "🚩 रातो भरिएको",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `के तपाईं यस इलाकाको लागि चिन्ह "<b>${mark === '' ? 'हटाउन' : mark}</b>" राख्न निश्चित हुनुहुन्छ?<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">महिना: ${monthLabel}</small>`,
         monthNames: ["जनवरी", "फेब्रुअरी", "मार्च", "अप्रिल", "मे", "जुन", "जुलाई", "अगस्ट", "सेप्टेम्बर", "अक्टोबर", "नोभेम्बर", "डिसेम्बर"],
         formatMonthDisplay: (year, mNum) => {
@@ -440,6 +483,7 @@
         loginCardPrompt: "登録済みのGoogleアカウントでログインしてください。",
         googleButtonText: "Googleでログイン",
         searchPlaceholder: "全ファイルを検索...", searchResultsTitle: "検索結果", noSearchResults: "該当するファイルがありません。",
+        redCellFlagBtn: "🚩 赤色マークを付ける", clearRedCellFlagBtn: "🚩 赤色マークを解除", redCellBadge: "🚩 赤色セル",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `以下の区域の訪問記号を「<b>${mark === '' ? '取消' : mark}</b>」に変更しますか？<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">対象月: ${monthLabel}</small>`,
         monthNames: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
         formatMonthDisplay: (year, mNum) => `${year}年 ${Math.max(1, Math.min(12, parseInt(mNum, 10) || 1))}月`
@@ -457,6 +501,7 @@
         loginCardPrompt: "Please sign in with an authorized Google account.",
         googleButtonText: "Sign in with Google",
         searchPlaceholder: "Search all files across subfolders...", searchResultsTitle: "Search Results", noSearchResults: "No files found.",
+        redCellFlagBtn: "🚩 Mark Cell Red", clearRedCellFlagBtn: "🚩 Clear Red Fill", redCellBadge: "🚩 Red Cell",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `${mark === '' ? 'Clear the mark' : `Set mark to <b>${mark}</b>`} for:<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">Month: ${monthLabel}</small>`,
         monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
         formatMonthDisplay: (year, mNum) => `${year} ${I18N.en.monthNames[Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1]}`
@@ -1032,12 +1077,27 @@
         const noPrefix = tData.no ? `<span class="no-tag">[${escapeHtml(state.lang === 'ne' ? toDevanagariNumerals(tData.no) : tData.no)}]</span>` : '';
         const targetLabel = `${tData.no ? `[${tData.no}] ` : ''}${tData.address || ''}`;
 
+        // Address Column E Red Cell Fill UI elements
+        const addressClass = tData.isRedHighlighted ? 'card-address is-red-highlighted' : 'card-address';
+        const redBadge = tData.isRedHighlighted ? `<span class="red-flag-badge">${t().redCellBadge}</span>` : '';
+
         card.innerHTML = `
           <div class="card-top-row">
-            <div class="card-address">${noPrefix}${escapeHtml(tData.address || '')}</div>
+            <div class="${addressClass}">
+              ${noPrefix}${escapeHtml(tData.address || '')} ${redBadge}
+            </div>
             <div class="overdue-badge" id="badge_${tData.rowIndex}">⚠️ ${t().notVisitedIn} (${escapeHtml(overdueInfo.label)})</div>
           </div>
           <div class="card-meta">${escapeHtml([tData.city, tData.cong].filter(Boolean).join(' ・ '))}</div>
+          
+          <!-- Column E Red Fill Toggle Button -->
+          <div style="margin: 6px 0;">
+            <button type="button" class="red-flag-btn ${tData.isRedHighlighted ? 'active' : ''}" 
+                    onclick="toggleRedHighlight(${tData.rowIndex}, ${!tData.isRedHighlighted})">
+              ${tData.isRedHighlighted ? t().clearRedCellFlagBtn : t().redCellFlagBtn}
+            </button>
+          </div>
+
           <div class="card-remarks-box" onclick="openRemarksEditor(${tData.rowIndex})">
             <span class="card-remarks-text ${tData.remarks ? '' : 'empty'}">${escapeHtml(tData.remarks || t().emptyRemarksText)}</span>
             <span style="font-size:13px; color:var(--primary);">✏️</span>
@@ -1070,6 +1130,36 @@
       });
       updateFilterCounts(data.territories.length, overdueCount);
       applyFilter();
+    }
+
+    async function toggleRedHighlight(rowIndex, setRed) {
+      showToast(t().saving);
+      
+      // Optimistic UI update
+      const territory = state.activeSheetData.territories.find(t => t.rowIndex === rowIndex);
+      if (territory) {
+        territory.isRedHighlighted = setRed;
+        renderTerritoryCards(state.activeSheetData);
+      }
+
+      try {
+        await apiRequest("toggleRedHighlight", {
+          fileId: state.currentFileId,
+          sheetName: state.currentSheetName,
+          row: rowIndex,
+          enableHighlight: setRed
+        });
+
+        // Update local storage cache
+        const cacheKey = `territory_cache_${state.currentFileId}_${state.currentSheetName || 'default'}`;
+        if (state.activeSheetData) {
+          localStorage.setItem(cacheKey, JSON.stringify(state.activeSheetData));
+        }
+
+        showToast(t().saved);
+      } catch (err) {
+        alert(err.message);
+      }
     }
 
     function setTerritoryFilter(type) {
