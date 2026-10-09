@@ -42,6 +42,9 @@
       --font-history: calc(12px * var(--font-scale));
       --font-action: calc(14px * var(--font-scale));
       --font-btn-height: calc(32px * var(--font-scale));
+      --font-card-title: calc(14.5px * var(--font-scale));
+      --font-card-icon: calc(26px * var(--font-scale));
+      --font-search-input: calc(14px * var(--font-scale));
     }
 
     /* Standard Dark Theme */
@@ -67,7 +70,7 @@
       --toast-bg: #2d2d2d;
     }
 
-    /* Modern Glass-Spatial 3D Theme (Replicating Attached Sample) */
+    /* Modern Glass-Spatial 3D Theme */
     body.theme-3d {
       --bg: linear-gradient(165deg, #0d1326 0%, #1f1b3e 40%, #34204d 100%);
       --card-bg: rgba(255, 255, 255, 0.11);
@@ -105,7 +108,7 @@
       flex-shrink: 0; z-index: 20; position: relative;
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     }
-    .header-title { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .header-title { font-size: calc(18px * var(--font-scale)); font-weight: 800; display: flex; align-items: center; gap: 8px; }
     .header-actions { display: flex; align-items: center; gap: 10px; }
     
     .settings-container { position: relative; }
@@ -172,7 +175,7 @@
 
     /* App Views */
     .breadcrumb {
-      display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-sub);
+      display: flex; align-items: center; gap: 6px; font-size: calc(13px * var(--font-scale)); color: var(--text-sub);
       overflow-x: auto; white-space: nowrap; padding: 8px 16px; background: var(--card-bg);
       border-bottom: 1px solid var(--border); flex-shrink: 0;
       backdrop-filter: blur(10px);
@@ -181,15 +184,15 @@
     .screen { display: none; flex: 1; overflow-y: auto; padding: 14px; -webkit-overflow-scrolling: touch; }
     .screen.active { display: block; }
 
-    /* Global Search Box */
+    /* Global Search Box with Dynamic Clear Button */
     .global-search-container {
       margin-bottom: 14px;
       position: relative;
     }
     .global-search-input {
       width: 100%;
-      padding: 12px 14px 12px 40px;
-      font-size: 14px;
+      padding: 12px 38px 12px 40px;
+      font-size: var(--font-search-input);
       border: 1px solid var(--border);
       border-radius: 20px;
       background: var(--card-bg);
@@ -203,16 +206,40 @@
       left: 14px;
       top: 50%;
       transform: translateY(-50%);
-      font-size: 15px;
+      font-size: var(--font-search-input);
       color: var(--text-sub);
     }
+    .search-clear-btn {
+      display: none;
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--btn-bg);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-sub);
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      padding: 0;
+    }
+    .search-clear-btn.visible {
+      display: flex;
+    }
     .search-results-label {
-      font-size: 12px; font-weight: 800; color: var(--text-sub); margin-bottom: 8px; display: block;
+      font-size: calc(12px * var(--font-scale)); font-weight: 800; color: var(--text-sub); margin-bottom: 8px; display: block;
     }
     .file-card-folder-badge {
-      font-size: 11px; color: var(--primary); font-weight: 600; display: block; margin-top: 2px;
+      font-size: calc(11px * var(--font-scale)); color: var(--primary); font-weight: 600; display: block; margin-top: 2px;
     }
 
+    /* Scalable Folders & Files Layout */
     .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
     .folder-card, .file-card {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px;
@@ -221,20 +248,20 @@
       transition: transform 0.2s;
     }
     .folder-card:active, .file-card:active { transform: scale(0.98); }
-    .card-icon { font-size: 26px; }
-    .card-name { font-size: 14.5px; font-weight: 700; color: var(--text-main); word-break: break-word; }
+    .card-icon { font-size: var(--font-card-icon); }
+    .card-name { font-size: var(--font-card-title); font-weight: 700; color: var(--text-main); word-break: break-word; }
 
     .sheet-tabs { display: flex; gap: 8px; padding-bottom: 10px; overflow-x: auto; white-space: nowrap; flex-shrink: 0; }
-    .sheet-tab-btn { padding: 8px 16px; border: 1px solid var(--border); border-radius: 20px; background: var(--card-bg); font-size: 13px; color: var(--text-sub); cursor: pointer; font-weight: 600; backdrop-filter: blur(8px); }
+    .sheet-tab-btn { padding: 8px 16px; border: 1px solid var(--border); border-radius: 20px; background: var(--card-bg); font-size: calc(13px * var(--font-scale)); color: var(--text-sub); cursor: pointer; font-weight: 600; backdrop-filter: blur(8px); }
     .sheet-tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 700; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
 
     .filter-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-shrink: 0; }
-    .filter-pill { padding: 8px 16px; border-radius: 20px; font-size: 12.5px; font-weight: 700; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-sub); cursor: pointer; backdrop-filter: blur(8px); }
+    .filter-pill { padding: 8px 16px; border-radius: 20px; font-size: calc(12.5px * var(--font-scale)); font-weight: 700; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-sub); cursor: pointer; backdrop-filter: blur(8px); }
     .filter-pill.active { background: #ffffff; color: #1e1b3a; border-color: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.15); }
     body:not(.theme-3d) .filter-pill.active { background: var(--text-main); color: var(--bg); }
     .filter-pill.overdue-pill.active { background: var(--overdue-red); color: #ffffff; border-color: var(--overdue-red); }
 
-    /* Modern 3D Glass Territory Card (Style Replicated from Attached Image) */
+    /* Modern 3D Glass Territory Card */
     .territory-card {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px;
       padding: 18px; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
@@ -271,7 +298,7 @@
     .red-flag-badge {
       background: #ef4444;
       color: #ffffff;
-      font-size: 11px;
+      font-size: calc(11px * var(--font-scale));
       font-weight: 800;
       padding: 3px 8px;
       border-radius: 12px;
@@ -282,7 +309,7 @@
     .red-flag-btn {
       padding: 5px 12px;
       border-radius: 16px;
-      font-size: 12px;
+      font-size: calc(12px * var(--font-scale));
       font-weight: 700;
       border: 1px solid var(--border);
       background: var(--btn-bg);
@@ -296,10 +323,10 @@
       font-weight: 800;
     }
 
-    /* Pill Badges Replicated from Sample Image */
+    /* Pill Badges */
     .overdue-badge {
       display: none; background: #ffffff; color: #1e1b3a;
-      font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 20px;
+      font-size: calc(12px * var(--font-scale)); font-weight: 800; padding: 4px 12px; border-radius: 20px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
     body:not(.theme-3d) .overdue-badge {
@@ -325,7 +352,7 @@
       color: var(--text-main); transition: transform 0.15s, box-shadow 0.15s;
     }
     .mark-btn:active { transform: scale(0.92); }
-    .mark-btn.clear { font-size: 11.5px; color: var(--text-sub); }
+    .mark-btn.clear { font-size: calc(11.5px * var(--font-scale)); color: var(--text-sub); }
     .mark-btn.o { color: var(--mark-o); border-color: rgba(52, 211, 153, 0.4); background: rgba(52, 211, 153, 0.15); }
     .mark-btn.x { color: var(--mark-x); border-color: rgba(248, 113, 113, 0.4); background: rgba(248, 113, 113, 0.15); }
     .mark-btn.t { color: var(--mark-t); border-color: rgba(251, 191, 36, 0.4); background: rgba(251, 191, 36, 0.15); }
@@ -333,29 +360,29 @@
     body:not(.theme-3d) .mark-btn.active-mark { background: var(--primary); color: #ffffff; }
 
     .history-box { padding-top: 4px; }
-    .history-title { font-size: 11.5px; font-weight: 800; margin-bottom: 6px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.3px; }
+    .history-title { font-size: calc(11.5px * var(--font-scale)); font-weight: 800; margin-bottom: 6px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.3px; }
     .history-items-container { display: flex; flex-direction: column; gap: 4px; }
     .history-item { font-size: var(--font-history); line-height: 1.4; color: var(--text-main); font-weight: 500; }
     .year-accordion { margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 8px; }
-    .accordion-toggle { font-size: 12px; color: var(--primary); cursor: pointer; font-weight: 700; }
+    .accordion-toggle { font-size: calc(12px * var(--font-scale)); color: var(--primary); cursor: pointer; font-weight: 700; }
     .accordion-content { display: none; margin-top: 10px; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
     .accordion-content.open { display: grid; }
-    .older-month-cell { border: 1px solid var(--border); border-radius: 12px; padding: 8px; font-size: 11px; background: var(--btn-bg); }
+    .older-month-cell { border: 1px solid var(--border); border-radius: 12px; padding: 8px; font-size: calc(11px * var(--font-scale)); background: var(--btn-bg); }
     .older-btn-group { display: flex; gap: 4px; margin-top: 6px; }
-    .older-btn { flex: 1; padding: 4px 0; font-size: 11px; font-weight: 800; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); color: var(--text-main); cursor: pointer; }
+    .older-btn { flex: 1; padding: 4px 0; font-size: calc(11px * var(--font-scale)); font-weight: 800; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); color: var(--text-main); cursor: pointer; }
 
     .modal-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(8px); }
     .modal-box { background: var(--modal-box-bg); border-radius: 20px; width: 100%; max-width: 340px; padding: 20px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-    .modal-header { font-size: 17px; font-weight: 800; margin-bottom: 8px; color: var(--text-main); }
-    .modal-message { font-size: 13.5px; color: var(--text-sub); line-height: 1.45; margin-bottom: 16px; word-break: break-word; }
-    .remarks-textarea { width: 100%; min-height: 85px; border: 1px solid var(--border); background: var(--btn-bg); color: var(--text-main); border-radius: 12px; padding: 10px; font-size: 14px; outline: none; margin-bottom: 16px; }
+    .modal-header { font-size: calc(17px * var(--font-scale)); font-weight: 800; margin-bottom: 8px; color: var(--text-main); }
+    .modal-message { font-size: calc(13.5px * var(--font-scale)); color: var(--text-sub); line-height: 1.45; margin-bottom: 16px; word-break: break-word; }
+    .remarks-textarea { width: 100%; min-height: 85px; border: 1px solid var(--border); background: var(--btn-bg); color: var(--text-main); border-radius: 12px; padding: 10px; font-size: calc(14px * var(--font-scale)); outline: none; margin-bottom: 16px; }
     .modal-btn-row { display: flex; justify-content: flex-end; gap: 10px; }
-    .modal-btn { padding: 8px 18px; border-radius: 16px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1px solid transparent; }
+    .modal-btn { padding: 8px 18px; border-radius: 16px; font-size: calc(13px * var(--font-scale)); font-weight: 700; cursor: pointer; border: 1px solid transparent; }
     .modal-btn.cancel { background: var(--btn-bg); color: var(--text-main); border-color: var(--border); }
     .modal-btn.confirm { background: var(--primary); color: #ffffff; }
 
-    .loader { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--modal-box-bg); color: var(--text-main); padding: 14px 24px; border-radius: 20px; border: 1px solid var(--border); font-size: 13.5px; font-weight: 700; z-index: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.3); backdrop-filter: blur(10px); }
-    .toast { position: fixed; bottom: 20px; right: 20px; background: var(--toast-bg); color: #fff; padding: 10px 18px; border-radius: 16px; font-size: 12.5px; font-weight: 600; display: none; z-index: 600; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+    .loader { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--modal-box-bg); color: var(--text-main); padding: 14px 24px; border-radius: 20px; border: 1px solid var(--border); font-size: calc(13.5px * var(--font-scale)); font-weight: 700; z-index: 500; box-shadow: 0 10px 30px rgba(0,0,0,0.3); backdrop-filter: blur(10px); }
+    .toast { position: fixed; bottom: 20px; right: 20px; background: var(--toast-bg); color: #fff; padding: 10px 18px; border-radius: 16px; font-size: calc(12.5px * var(--font-scale)); font-weight: 600; display: none; z-index: 600; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
   </style>
 </head>
 <body>
@@ -446,10 +473,11 @@
 
     <!-- Screen 1: Subfolders & Search -->
     <div class="screen active" id="foldersScreen">
-      <!-- Global Search Box -->
+      <!-- Global Search Box with Clear Button -->
       <div class="global-search-container">
         <span class="global-search-icon">🔍</span>
         <input type="text" id="globalSearchInput" class="global-search-input" placeholder="फाइल खोज्नुहोस् / Search all files..." oninput="onGlobalSearchInput(this.value)">
+        <button type="button" id="globalSearchClearBtn" class="search-clear-btn" onclick="clearGlobalSearch()" title="Clear search">✕</button>
       </div>
 
       <div id="searchResultsSection" style="display:none; margin-bottom: 16px;">
@@ -594,7 +622,7 @@
     function t() { return I18N[state.lang] || I18N.ne; }
 
     window.onload = function() {
-      // Clean up any previously registered service workers to ensure pure non-PWA network routing
+      // Clean up any previously registered service workers
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(registrations => {
           for (let registration of registrations) {
@@ -981,12 +1009,17 @@
       });
     }
 
-    // --- GLOBAL SEARCH IMPLEMENTATION ---
+    // --- GLOBAL SEARCH IMPLEMENTATION WITH CLEAR BUTTON ---
     function onGlobalSearchInput(query) {
       clearTimeout(state.searchTimeout);
       const cleanQuery = query.trim().toLowerCase();
       const resultsSection = document.getElementById('searchResultsSection');
       const subfoldersSection = document.getElementById('subfoldersSection');
+      const clearBtn = document.getElementById('globalSearchClearBtn');
+
+      if (clearBtn) {
+        clearBtn.classList.toggle('visible', query.length > 0);
+      }
 
       if (!cleanQuery) {
         resultsSection.style.display = 'none';
@@ -997,6 +1030,15 @@
       state.searchTimeout = setTimeout(() => {
         executeGlobalSearch(cleanQuery);
       }, 200);
+    }
+
+    function clearGlobalSearch() {
+      const input = document.getElementById('globalSearchInput');
+      if (input) {
+        input.value = '';
+        onGlobalSearchInput('');
+        input.focus();
+      }
     }
 
     async function executeGlobalSearch(cleanQuery) {
