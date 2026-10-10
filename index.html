@@ -47,7 +47,6 @@
       --font-search-input: calc(14px * var(--font-scale));
     }
 
-    /* Standard Dark Theme */
     body.dark-theme {
       --primary: #8ab4f8;
       --bg: #121212;
@@ -70,7 +69,6 @@
       --toast-bg: #2d2d2d;
     }
 
-    /* Modern Glass-Spatial 3D Theme */
     body.theme-3d {
       --bg: linear-gradient(165deg, #0d1326 0%, #1f1b3e 40%, #34204d 100%);
       --card-bg: rgba(255, 255, 255, 0.11);
@@ -172,7 +170,6 @@
     input:checked + .slider { background-color: var(--primary); }
     input:checked + .slider:before { transform: translateX(20px); }
 
-    /* Centered Mobile Login Card Layout */
     .login-container {
       display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
       height: 100vh; width: 100vw; padding: 24px; background: var(--bg);
@@ -335,7 +332,6 @@
             </div>
           </div>
           
-          <!-- Modern 3D Spatial Theme Switcher -->
           <div class="settings-item" style="border-top:1px solid var(--border); padding-top:10px; margin-top:4px;">
             <span class="settings-label"><span>✨</span> <span id="txt3dThemeLabel">आधुनिक 3D थिम</span></span>
             <label class="switch">
@@ -397,12 +393,10 @@
       <h2 id="txtLoginPortalHeader">इलाका सूची</h2>
       <p id="txtLoginPrompt">कृपया अधिकृत Google खाताबाट लगइन गर्नुहोस्।</p>
       
-      <!-- Google Sign In Button Container -->
       <div class="google-btn-wrapper">
         <div id="g_id_signin_button"></div>
       </div>
 
-      <!-- Compact Language Selector at the bottom of the Login Card -->
       <div class="segmented-group" style="margin-top: 24px; max-width: 240px;">
         <button type="button" class="segmented-btn" id="btnLocalEn" onclick="setLanguage('en')">EN</button>
         <button type="button" class="segmented-btn" id="btnLocalJa" onclick="setLanguage('ja')">日本語</button>
@@ -417,7 +411,6 @@
 
     <!-- Screen 1: Subfolders & Search -->
     <div class="screen active" id="foldersScreen">
-      <!-- Global Search Box with Clear Button -->
       <div class="global-search-container">
         <span class="global-search-icon">🔍</span>
         <input type="text" id="globalSearchInput" class="global-search-input" placeholder="फाइल खोज्नुहोस् / Search all files..." oninput="onGlobalSearchInput(this.value)">
@@ -1199,11 +1192,15 @@
       });
     }
 
-    // --- STALE-WHILE-REVALIDATE CARD OPENING (SINGLE KEY LOOKUP) ---
+    // --- STALE-WHILE-REVALIDATE CARD OPENING (WITH SCROLL RESET) ---
     async function openTerritoryCards(fileId, fileName, optSheetName) {
       state.currentFileId = fileId; 
       state.currentFileName = fileName;
       showScreen('cardsScreen');
+
+      // Reset scroll position back to the top whenever opening a sheet or tab
+      const cardsScreen = document.getElementById('cardsScreen');
+      if (cardsScreen) cardsScreen.scrollTop = 0;
 
       const primaryKey = `territory_cache_${fileId}`;
       const localCached = await dbGet(primaryKey);
