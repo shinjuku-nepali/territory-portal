@@ -152,7 +152,7 @@
     }
 
     .segmented-group { display: flex; gap: 4px; background: var(--btn-bg); border: 1px solid var(--border); border-radius: 20px; padding: 3px; width: 100%; }
-    .segmented-btn { flex: 1; padding: 6px 0; border: none; background: transparent; color: var(--text-sub); font-size: 12px; font-weight: 700; border-radius: 16px; cursor: pointer; text-align: center; font-family: inherit; transition: all 0.2s; }
+    .segmented-btn { flex: 1; padding: 6px 0; border: none; background: transparent; color: var(--text-sub); font-size: 12px; font-weight: 700; border-radius: 16px; cursor: pointer; text-align: center; font-family: inherit; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
     .segmented-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
     body.dark-theme .segmented-btn.active { background: #333333; color: var(--primary); }
     body.theme-3d .segmented-btn.active { background: #ffffff; color: #1e1b3a; }
@@ -193,8 +193,30 @@
       border-bottom: 1px solid var(--border); flex-shrink: 0; backdrop-filter: blur(10px);
     }
     .breadcrumb-item { cursor: pointer; color: var(--primary); font-weight: 600; }
-    .screen { display: none; flex: 1; overflow-y: auto; padding: 14px; -webkit-overflow-scrolling: touch; }
-    .screen.active { display: block; }
+
+    /* Apple-Style Screen Transition Animation */
+    @keyframes appleFadeIn {
+      0% {
+        opacity: 0;
+        transform: translateY(12px) scale(0.99);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .screen { 
+      display: none; 
+      flex: 1; 
+      overflow-y: auto; 
+      padding: 14px; 
+      -webkit-overflow-scrolling: touch; 
+    }
+    .screen.active { 
+      display: block; 
+      animation: appleFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+    }
 
     .global-search-container { margin-bottom: 14px; position: relative; }
     .global-search-input {
@@ -214,22 +236,27 @@
     .file-card-folder-badge { font-size: calc(11px * var(--font-scale)); color: var(--primary); font-weight: 600; display: block; margin-top: 2px; }
 
     .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+    
+    /* Tactile Apple-Style Spring Cards */
     .folder-card, .file-card {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px;
       padding: 16px 18px; display: flex; align-items: center; gap: 14px; cursor: pointer;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      transition: transform 0.2s;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .folder-card:active, .file-card:active { transform: scale(0.98); }
+    .folder-card:active, .file-card:active { 
+      transform: scale(0.97); 
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
     .card-icon { font-size: var(--font-card-icon); }
     .card-name { font-size: var(--font-card-title); font-weight: 700; color: var(--text-main); word-break: break-word; }
 
     .sheet-tabs { display: flex; gap: 8px; padding-bottom: 10px; overflow-x: auto; white-space: nowrap; flex-shrink: 0; }
-    .sheet-tab-btn { padding: 8px 16px; border: 1px solid var(--border); border-radius: 20px; background: var(--card-bg); font-size: calc(13px * var(--font-scale)); color: var(--text-sub); cursor: pointer; font-weight: 600; backdrop-filter: blur(8px); }
+    .sheet-tab-btn { padding: 8px 16px; border: 1px solid var(--border); border-radius: 20px; background: var(--card-bg); font-size: calc(13px * var(--font-scale)); color: var(--text-sub); cursor: pointer; font-weight: 600; backdrop-filter: blur(8px); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
     .sheet-tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 700; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
 
     .filter-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-shrink: 0; }
-    .filter-pill { padding: 8px 16px; border-radius: 20px; font-size: calc(12.5px * var(--font-scale)); font-weight: 700; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-sub); cursor: pointer; backdrop-filter: blur(8px); }
+    .filter-pill { padding: 8px 16px; border-radius: 20px; font-size: calc(12.5px * var(--font-scale)); font-weight: 700; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-sub); cursor: pointer; backdrop-filter: blur(8px); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
     .filter-pill.active { background: #ffffff; color: #1e1b3a; border-color: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.15); }
     body:not(.theme-3d) .filter-pill.active { background: var(--text-main); color: var(--bg); }
     .filter-pill.overdue-pill.active { background: var(--overdue-red); color: #ffffff; border-color: var(--overdue-red); }
@@ -253,7 +280,7 @@
     body.dark-theme:not(.theme-3d) .card-address.is-red-highlighted { background-color: #3c1e1e; color: #f28b82; border-left: 4px solid #f28b82; }
     
     .red-flag-badge { background: #ef4444; color: #ffffff; font-size: calc(11px * var(--font-scale)); font-weight: 800; padding: 3px 8px; border-radius: 12px; margin-left: 6px; display: inline-block; vertical-align: middle; }
-    .red-flag-btn { padding: 5px 12px; border-radius: 16px; font-size: calc(12px * var(--font-scale)); font-weight: 700; border: 1px solid var(--border); background: var(--btn-bg); color: var(--text-sub); cursor: pointer; }
+    .red-flag-btn { padding: 5px 12px; border-radius: 16px; font-size: calc(12px * var(--font-scale)); font-weight: 700; border: 1px solid var(--border); background: var(--btn-bg); color: var(--text-sub); cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
     .red-flag-btn.active { background: rgba(239, 68, 68, 0.3); color: #f87171; border-color: rgba(239, 68, 68, 0.6); font-weight: 800; }
 
     .overdue-badge { display: none; background: #ffffff; color: #1e1b3a; font-size: calc(12px * var(--font-scale)); font-weight: 800; padding: 4px 12px; border-radius: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
@@ -272,7 +299,7 @@
     .mark-btn {
       padding: 6px 12px; border-radius: 16px; font-size: var(--font-action); font-weight: 800;
       border: 1px solid var(--border); background: var(--btn-bg); cursor: pointer; min-width: 38px; min-height: var(--font-btn-height);
-      color: var(--text-main); transition: transform 0.15s, box-shadow 0.15s;
+      color: var(--text-main); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .mark-btn:active { transform: scale(0.92); }
     .mark-btn.clear { font-size: calc(11.5px * var(--font-scale)); color: var(--text-sub); }
@@ -482,7 +509,7 @@
     const GOOGLE_CLIENT_ID = "752070145895-49kenu29mj4jfei3di41nahpvkv69ded.apps.googleusercontent.com";
 
     // ==========================================
-    // INDEXEDDB STORAGE ENGINE
+    // INDEXEDDB STORAGE ENGINE (SINGLE KEY)
     // ==========================================
     const DB_NAME = "TerritoryPortalDB";
     const DB_STORE = "app_cache";
@@ -529,7 +556,7 @@
       }
     }
 
-    // Single Key Save (Only 1 copy stored in IndexedDB)
+    // Unified Single Key Save
     async function saveSheetCache(fileId, res) {
       const primaryKey = `territory_cache_${fileId}`;
       await dbSet(primaryKey, res);
@@ -1192,7 +1219,7 @@
       });
     }
 
-    // --- STALE-WHILE-REVALIDATE CARD OPENING (WITH SCROLL RESET) ---
+    // --- STALE-WHILE-REVALIDATE CARD OPENING (SINGLE KEY + SCROLL RESET) ---
     async function openTerritoryCards(fileId, fileName, optSheetName) {
       state.currentFileId = fileId; 
       state.currentFileName = fileName;
