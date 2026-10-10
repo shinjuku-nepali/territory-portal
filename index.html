@@ -393,7 +393,7 @@
   <!-- Login Gate Screen -->
   <div id="loginScreen" class="login-container">
     <div class="login-card">
-  
+
       <h2 id="txtLoginPortalHeader">इलाका सूची</h2>
       <p id="txtLoginPrompt">कृपया अधिकृत Google खाताबाट लगइन गर्नुहोस्।</p>
       
@@ -489,7 +489,7 @@
     const GOOGLE_CLIENT_ID = "752070145895-49kenu29mj4jfei3di41nahpvkv69ded.apps.googleusercontent.com";
 
     // ==========================================
-    // INDEXEDDB STORAGE ENGINE (REPLACES 5MB LOCALSTORAGE)
+    // INDEXEDDB STORAGE ENGINE
     // ==========================================
     const DB_NAME = "TerritoryPortalDB";
     const DB_STORE = "app_cache";
@@ -534,6 +534,12 @@
       } catch (err) {
         console.error("IndexedDB Set Error:", err);
       }
+    }
+
+    // Single Key Save (Only 1 copy stored in IndexedDB)
+    async function saveSheetCache(fileId, res) {
+      const primaryKey = `territory_cache_${fileId}`;
+      await dbSet(primaryKey, res);
     }
 
     const I18N = {
@@ -625,7 +631,6 @@
       initLanguage();
       checkStorageUsage();
 
-      // Listen for online events to flush any pending offline mutations
       window.addEventListener('online', flushPendingSyncQueue);
       flushPendingSyncQueue();
       
@@ -687,7 +692,6 @@
       location.reload();
     }
 
-    // High-speed API router with keepalive flag for rapid app close protection
     async function apiRequest(action, payload = {}, retries = 3) {
       if (!state.idToken) throw new Error("Authentication required.");
 
@@ -776,7 +780,7 @@
       checkStorageUsage();
     }
 
-    // --- LOCAL STORAGE & INDEXEDDB METER ---
+    // --- STORAGE METER ---
     async function checkStorageUsage() {
       if (navigator.storage && navigator.storage.estimate) {
         try {
@@ -792,7 +796,7 @@
       }
     }
 
-    // --- SEQUENTIAL CHUNKED INDEXEDDB OFFLINE DOWNLOADER ---
+    // --- SEQUENTIAL INDEXEDDB OFFLINE DOWNLOADER ---
     async function downloadAllFilesOffline() {
       const btn = document.getElementById('btnDownloadAll');
       btn.disabled = true;
@@ -818,8 +822,7 @@
           btn.textContent = `📥 Downloading (${downloadedCount}/${totalFiles})...`;
           try {
             const res = await apiRequest("getTerritoryCards", { fileId: file.fileId });
-            const cacheKey = `territory_cache_${file.fileId}_${res.activeSheet || 'default'}`;
-            await dbSet(cacheKey, res);
+            await saveSheetCache(file.fileId, res);
           } catch (e) {
             console.warn(`Failed downloading ${file.fileName}:`, e);
           }
@@ -1014,9 +1017,8 @@
         }
       }
 
-      const cacheKey = `territory_cache_${state.currentFileId}_${state.currentSheetName || 'default'}`;
       if (state.activeSheetData) {
-        await dbSet(cacheKey, state.activeSheetData);
+        await saveSheetCache(state.currentFileId, state.activeSheetData);
       }
 
       enqueueSyncAction("updateRemarks", {
@@ -1197,22 +1199,22 @@
       });
     }
 
-    // --- STALE-WHILE-REVALIDATE INDEXEDDB CARD OPENING ---
+    // --- STALE-WHILE-REVALIDATE CARD OPENING (SINGLE KEY LOOKUP) ---
     async function openTerritoryCards(fileId, fileName, optSheetName) {
       state.currentFileId = fileId; 
       state.currentFileName = fileName;
       showScreen('cardsScreen');
 
-      const cacheKey = `territory_cache_${fileId}_${optSheetName || 'default'}`;
-      const localCached = await dbGet(cacheKey);
+      const primaryKey = `territory_cache_${fileId}`;
+      const localCached = await dbGet(primaryKey);
 
-      if (localCached) {
+      if (localCached && (!optSheetName || localCached.activeSheet === optSheetName)) {
         // Instant 0ms Load from IndexedDB
         state.currentSheetName = localCached.activeSheet;
         state.activeSheetData = localCached;
         renderTerritoryCards(localCached);
 
-        // Background Check for updates
+        // Background Check for updates without blocking UI
         checkBackgroundDataVersion(fileId, localCached.lastUpdated, optSheetName);
       } else {
         showLoader(t().parsingCards);
@@ -1234,18 +1236,16 @@
 
     async function syncCurrentSheetData(optSheetName) {
       document.getElementById('updateAvailableBanner').style.display = 'none';
-      showToast(t().saving);
 
       try {
         const res = await apiRequest("getTerritoryCards", { fileId: state.currentFileId, sheetName: optSheetName || state.currentSheetName });
         state.currentSheetName = res.activeSheet;
         state.activeSheetData = res;
 
-        const cacheKey = `territory_cache_${state.currentFileId}_${res.activeSheet || 'default'}`;
-        await dbSet(cacheKey, res);
+        // Save strictly under primary key
+        await saveSheetCache(state.currentFileId, res);
 
         renderTerritoryCards(res);
-        showToast(t().saved);
         checkStorageUsage();
       } catch (err) {
         alert(err.message);
@@ -1384,9 +1384,8 @@
         renderTerritoryCards(state.activeSheetData);
       }
 
-      const cacheKey = `territory_cache_${state.currentFileId}_${state.currentSheetName || 'default'}`;
       if (state.activeSheetData) {
-        await dbSet(cacheKey, state.activeSheetData);
+        await saveSheetCache(state.currentFileId, state.activeSheetData);
       }
 
       enqueueSyncAction("toggleRedHighlight", {
@@ -1500,9 +1499,8 @@
         }
       }
 
-      const cacheKey = `territory_cache_${state.currentFileId}_${state.currentSheetName || 'default'}`;
       if (state.activeSheetData) {
-        await dbSet(cacheKey, state.activeSheetData);
+        await saveSheetCache(state.currentFileId, state.activeSheetData);
       }
 
       enqueueSyncAction("updateCellMark", {
