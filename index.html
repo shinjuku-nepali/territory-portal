@@ -552,6 +552,7 @@
         searchPlaceholder: "सबै फाइलहरू खोज्नुहोस्...", searchResultsTitle: "खोज परिणामहरू", noSearchResults: "कुनै फाइल फेला परेन।",
         redCellFlagBtn: "🚩 रातो रङ लगाउनुहोस्", clearRedCellFlagBtn: "🚩 रातो रङ हटाउनुहोस्", redCellBadge: "🚩 रातो भरिएको",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `के तपाईं यस इलाकाको लागि चिन्ह "<b>${mark === '' ? 'हटाउन' : mark}</b>" राख्न निश्चित हुनुहुन्छ?<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">महिना: ${monthLabel}</small>`,
+        confirmRedPrompt: (setRed, targetLabel) => `के तपाईं यस इलाकाको लागि रातो रङ ${setRed ? 'लगाउन' : 'हटाउन'} निश्चित हुनुहुन्छ?<br><b>${targetLabel}</b>`,
         monthNames: ["जनवरी", "फेब्रुअरी", "मार्च", "अप्रिल", "मे", "जुन", "जुलाई", "अगस्ट", "सेप्टेम्बर", "अक्टोबर", "नोभेम्बर", "डिसेम्बर"],
         formatMonthDisplay: (year, mNum) => {
           const idx = Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1;
@@ -573,6 +574,7 @@
         searchPlaceholder: "全ファイルを検索...", searchResultsTitle: "検索結果", noSearchResults: "該当するファイルがありません。",
         redCellFlagBtn: "🚩 赤色マークを付ける", clearRedCellFlagBtn: "🚩 赤色マークを解除", redCellBadge: "🚩 赤色セル",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `以下の区域の訪問記号を「<b>${mark === '' ? '取消' : mark}</b>」に変更しますか？<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">対象月: ${monthLabel}</small>`,
+        confirmRedPrompt: (setRed, targetLabel) => `以下の区域の赤色マークを${setRed ? '付けます' : '解除します'}か？<br><b>${targetLabel}</b>`,
         monthNames: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
         formatMonthDisplay: (year, mNum) => `${year}年 ${Math.max(1, Math.min(12, parseInt(mNum, 10) || 1))}月`
       },
@@ -591,6 +593,7 @@
         searchPlaceholder: "Search all files across subfolders...", searchResultsTitle: "Search Results", noSearchResults: "No files found.",
         redCellFlagBtn: "🚩 Mark Cell Red", clearRedCellFlagBtn: "🚩 Clear Red Fill", redCellBadge: "🚩 Red Cell",
         confirmSetPrompt: (mark, targetLabel, monthLabel) => `${mark === '' ? 'Clear the mark' : `Set mark to <b>${mark}</b>`} for:<br><b>${targetLabel}</b><br><small style="color:var(--text-sub);">Month: ${monthLabel}</small>`,
+        confirmRedPrompt: (setRed, targetLabel) => `Are you sure you want to ${setRed ? 'mark this cell red' : 'clear the red fill'} for:<br><b>${targetLabel}</b>`,
         monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
         formatMonthDisplay: (year, mNum) => `${year} ${I18N.en.monthNames[Math.max(1, Math.min(12, parseInt(mNum, 10) || 1)) - 1]}`
       }
@@ -1333,7 +1336,7 @@
           
           <div style="margin: 6px 0;">
             <button type="button" class="red-flag-btn ${tData.isRedHighlighted ? 'active' : ''}" 
-                    onclick="toggleRedHighlight(${tData.rowIndex}, ${!tData.isRedHighlighted})">
+                    onclick="confirmToggleRedHighlight(${tData.rowIndex}, ${!tData.isRedHighlighted}, '${escapeHtml(targetLabel)}')">
               ${tData.isRedHighlighted ? t().clearRedCellFlagBtn : t().redCellFlagBtn}
             </button>
           </div>
@@ -1370,6 +1373,12 @@
       });
       updateFilterCounts(data.territories.length, overdueCount);
       applyFilter();
+    }
+
+    function confirmToggleRedHighlight(rowIndex, setRed, targetLabel) {
+      openConfirmModal(t().confirmRedPrompt(setRed, targetLabel), () => {
+        toggleRedHighlight(rowIndex, setRed);
+      });
     }
 
     async function toggleRedHighlight(rowIndex, setRed) {
